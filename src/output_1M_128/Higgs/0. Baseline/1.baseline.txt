@@ -1,0 +1,264 @@
+Samples size: 1321666, Features size: 29, Clusters size: 1024
+Samples memory size: 153313256 bytes
+Centroids memory size: 118784 bytes
+Assignments memory size: 5286664 bytes
+GPU #0 memory: used 9895494912 bytes (30.9%), free 22177708800 bytes, total 32073203712 bytes
+
+
+running Lloyd until reassignments drop below 145383
+Iteration 1: 1321666 Reassignments
+Iteration 2: 459225 Reassignments
+Iteration 3: 249387 Reassignments
+Iteration 4: 182802 Reassignments
+Iteration 5: 142755 Reassignments
+Iteration 1: 1024 Reassignments
+Iteration 2: 169 Reassignments
+Iteration 3: 63 Reassignments
+Iteration 4: 40 Reassignments
+Iteration 5: 21 Reassignments
+Iteration 6: 22 Reassignments
+Iteration 7: 11 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 670.722046 ms
+
+[Current Iteration = 5]
+(5) Iteration 5 Global Filter to Local Filter: 833534
+(6) Local Filter Baseline kernel execution time: 137.735580 ms
+(6) Early Skip Ratio Marking kernel execution time: 56.300159 ms
+(7) Calculation Skip Ratio execution time: 0.066592 ms
+Current iteration Skip Ratio = 0.98906
+Iteration 5: 115220 Reassignments
+
+[Current Iteration = 6]
+(5) Iteration 6 Global Filter to Local Filter: 1130385
+(6) Local Filter Baseline kernel execution time: 272.396759 ms
+(6) Early Skip Ratio Marking kernel execution time: 68.301476 ms
+(7) Calculation Skip Ratio execution time: 0.055040 ms
+Current iteration Skip Ratio = 0.97654
+Iteration 6: 94860 Reassignments
+
+[Current Iteration = 7]
+(5) Iteration 7 Global Filter to Local Filter: 1235881
+(6) Local Filter Baseline kernel execution time: 354.979492 ms
+(6) Early Skip Ratio Marking kernel execution time: 73.084351 ms
+(7) Calculation Skip Ratio execution time: 0.067296 ms
+Current iteration Skip Ratio = 0.96019
+Iteration 7: 80758 Reassignments
+
+[Current Iteration = 8]
+(5) Iteration 8 Global Filter to Local Filter: 1287153
+(6) Local Filter Baseline kernel execution time: 416.637421 ms
+(6) Early Skip Ratio Marking kernel execution time: 76.530243 ms
+(7) Calculation Skip Ratio execution time: 0.061440 ms
+Current iteration Skip Ratio = 0.93926
+Iteration 8: 69945 Reassignments
+
+[Current Iteration = 9]
+(5) Iteration 9 Global Filter to Local Filter: 1309125
+(6) Local Filter Baseline kernel execution time: 454.945465 ms
+(6) Early Skip Ratio Marking kernel execution time: 77.990974 ms
+(7) Calculation Skip Ratio execution time: 0.069504 ms
+Current iteration Skip Ratio = 0.91412
+Iteration 9: 61271 Reassignments
+
+[Current Iteration = 10]
+(5) Iteration 10 Global Filter to Local Filter: 1317478
+(6) Local Filter Baseline kernel execution time: 473.461945 ms
+(6) Early Skip Ratio Marking kernel execution time: 77.563484 ms
+(7) Calculation Skip Ratio execution time: 0.066880 ms
+Current iteration Skip Ratio = 0.88521
+Iteration 10: 54419 Reassignments
+
+[Current Iteration = 11]
+(5) Iteration 11 Global Filter to Local Filter: 1320146
+(6) Local Filter Baseline kernel execution time: 484.271790 ms
+(6) Early Skip Ratio Marking kernel execution time: 77.948990 ms
+(7) Calculation Skip Ratio execution time: 0.076768 ms
+Current iteration Skip Ratio = 0.85297
+Iteration 11: 49091 Reassignments
+
+[Current Iteration = 12]
+(5) Iteration 12 Global Filter to Local Filter: 1321017
+(6) Local Filter Baseline kernel execution time: 5673.689941 ms
+(6) Early Skip Ratio Marking kernel execution time: 100.797729 ms
+(7) Calculation Skip Ratio execution time: 0.098752 ms
+Current iteration Skip Ratio = 0.81868
+Iteration 12: 45026 Reassignments
+
+[Current Iteration = 13]
+(5) Iteration 13 Global Filter to Local Filter: 1321299
+(6) Local Filter Baseline kernel execution time: 485.623932 ms
+(6) Early Skip Ratio Marking kernel execution time: 78.131714 ms
+(7) Calculation Skip Ratio execution time: 0.054944 ms
+Current iteration Skip Ratio = 0.78293
+Iteration 13: 41239 Reassignments
+
+[Current Iteration = 14]
+(5) Iteration 14 Global Filter to Local Filter: 1321366
+(6) Local Filter Baseline kernel execution time: 3074.785156 ms
+(6) Early Skip Ratio Marking kernel execution time: 103.053825 ms
+(7) Calculation Skip Ratio execution time: 0.088736 ms
+Current iteration Skip Ratio = 0.74559
+Iteration 14: 38092 Reassignments
+
+[Current Iteration = 15]
+(5) Iteration 15 Global Filter to Local Filter: 1321406
+(6) Local Filter Baseline kernel execution time: 4843.575684 ms
+(6) Early Skip Ratio Marking kernel execution time: 103.107841 ms
+(7) Calculation Skip Ratio execution time: 0.103232 ms
+Current iteration Skip Ratio = 0.70729
+Iteration 15: 35559 Reassignments
+
+[Current Iteration = 16]
+(5) Iteration 16 Global Filter to Local Filter: 1321459
+(6) Local Filter Baseline kernel execution time: 5146.770996 ms
+(6) Early Skip Ratio Marking kernel execution time: 77.705727 ms
+(7) Calculation Skip Ratio execution time: 0.066464 ms
+Current iteration Skip Ratio = 0.66777
+Iteration 16: 32885 Reassignments
+
+[Current Iteration = 17]
+(5) Iteration 17 Global Filter to Local Filter: 1321475
+(6) Local Filter Baseline kernel execution time: 486.870392 ms
+(6) Early Skip Ratio Marking kernel execution time: 79.454689 ms
+(7) Calculation Skip Ratio execution time: 0.060320 ms
+Current iteration Skip Ratio = 0.62893
+Iteration 17: 30719 Reassignments
+
+[Current Iteration = 18]
+(5) Iteration 18 Global Filter to Local Filter: 1321491
+(6) Local Filter Baseline kernel execution time: 482.384338 ms
+(6) Early Skip Ratio Marking kernel execution time: 9085.865234 ms
+(7) Calculation Skip Ratio execution time: 0.131616 ms
+Current iteration Skip Ratio = 0.59194
+Iteration 18: 28908 Reassignments
+
+[Current Iteration = 19]
+(5) Iteration 19 Global Filter to Local Filter: 1321509
+(6) Local Filter Baseline kernel execution time: 481.600952 ms
+(6) Early Skip Ratio Marking kernel execution time: 78.536636 ms
+(7) Calculation Skip Ratio execution time: 0.087904 ms
+Current iteration Skip Ratio = 0.55670
+Iteration 19: 27098 Reassignments
+
+[Current Iteration = 20]
+(5) Iteration 20 Global Filter to Local Filter: 1321525
+(6) Local Filter Baseline kernel execution time: 481.109589 ms
+(6) Early Skip Ratio Marking kernel execution time: 75.975197 ms
+(7) Calculation Skip Ratio execution time: 0.070784 ms
+Current iteration Skip Ratio = 0.52316
+Iteration 20: 25337 Reassignments
+
+[Current Iteration = 21]
+(5) Iteration 21 Global Filter to Local Filter: 1321526
+(6) Local Filter Baseline kernel execution time: 489.384766 ms
+(6) Early Skip Ratio Marking kernel execution time: 78.204124 ms
+(7) Calculation Skip Ratio execution time: 0.067072 ms
+Current iteration Skip Ratio = 0.49140
+Iteration 21: 23679 Reassignments
+
+[Current Iteration = 22]
+(5) Iteration 22 Global Filter to Local Filter: 1321550
+(6) Local Filter Baseline kernel execution time: 488.224091 ms
+(6) Early Skip Ratio Marking kernel execution time: 78.159325 ms
+(7) Calculation Skip Ratio execution time: 0.078304 ms
+Current iteration Skip Ratio = 0.46169
+Iteration 22: 22332 Reassignments
+start initialize! cnt = 1.000000
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 672.055481 ms
+
+[Current Iteration = 23]
+(5) Iteration 23 Global Filter to Local Filter: 250806
+(6) Local Filter Baseline kernel execution time: 57.114815 ms
+(6) Early Skip Ratio Marking kernel execution time: 34.566368 ms
+(7) Calculation Skip Ratio execution time: 0.063744 ms
+Current iteration Skip Ratio = 0.99205
+Iteration 23: 20897 Reassignments
+
+[Current Iteration = 24]
+(5) Iteration 24 Global Filter to Local Filter: 459377
+(6) Local Filter Baseline kernel execution time: 101.118652 ms
+(6) Early Skip Ratio Marking kernel execution time: 44.987297 ms
+(7) Calculation Skip Ratio execution time: 0.065024 ms
+Current iteration Skip Ratio = 0.98913
+Iteration 24: 19837 Reassignments
+
+[Current Iteration = 25]
+(5) Iteration 25 Global Filter to Local Filter: 603615
+(6) Local Filter Baseline kernel execution time: 127.330078 ms
+(6) Early Skip Ratio Marking kernel execution time: 47.760128 ms
+(7) Calculation Skip Ratio execution time: 0.053792 ms
+Current iteration Skip Ratio = 0.98656
+Iteration 25: 18696 Reassignments
+
+[Current Iteration = 26]
+(5) Iteration 26 Global Filter to Local Filter: 734858
+(6) Local Filter Baseline kernel execution time: 146.946716 ms
+(6) Early Skip Ratio Marking kernel execution time: 52.280254 ms
+(7) Calculation Skip Ratio execution time: 0.084768 ms
+Current iteration Skip Ratio = 0.98425
+Iteration 26: 17734 Reassignments
+
+[Current Iteration = 27]
+(5) Iteration 27 Global Filter to Local Filter: 838934
+(6) Local Filter Baseline kernel execution time: 170.376038 ms
+(6) Early Skip Ratio Marking kernel execution time: 54.968929 ms
+(7) Calculation Skip Ratio execution time: 0.060544 ms
+Current iteration Skip Ratio = 0.98148
+Iteration 27: 16881 Reassignments
+
+[Current Iteration = 28]
+(5) Iteration 28 Global Filter to Local Filter: 934002
+(6) Local Filter Baseline kernel execution time: 194.393890 ms
+(6) Early Skip Ratio Marking kernel execution time: 59.235809 ms
+(7) Calculation Skip Ratio execution time: 0.054016 ms
+Current iteration Skip Ratio = 0.97868
+Iteration 28: 16056 Reassignments
+
+[Current Iteration = 29]
+(5) Iteration 29 Global Filter to Local Filter: 1006080
+(6) Local Filter Baseline kernel execution time: 220.828995 ms
+(6) Early Skip Ratio Marking kernel execution time: 62.687199 ms
+(7) Calculation Skip Ratio execution time: 0.061888 ms
+Current iteration Skip Ratio = 0.97534
+Iteration 29: 15259 Reassignments
+
+[Current Iteration = 30]
+(5) Iteration 30 Global Filter to Local Filter: 1065498
+(6) Local Filter Baseline kernel execution time: 244.608582 ms
+(6) Early Skip Ratio Marking kernel execution time: 65.285309 ms
+(7) Calculation Skip Ratio execution time: 0.056832 ms
+Current iteration Skip Ratio = 0.97188
+Iteration 30: 14569 Reassignments
+
+[Current Iteration = 31]
+(5) Iteration 31 Global Filter to Local Filter: 1113967
+(6) Local Filter Baseline kernel execution time: 266.151398 ms
+(6) Early Skip Ratio Marking kernel execution time: 67.003036 ms
+(7) Calculation Skip Ratio execution time: 0.053760 ms
+Current iteration Skip Ratio = 0.96833
+Iteration 31: 13988 Reassignments
+
+[Current Iteration = 32]
+(5) Iteration 32 Global Filter to Local Filter: 1153719
+(6) Local Filter Baseline kernel execution time: 287.252380 ms
+(6) Early Skip Ratio Marking kernel execution time: 68.022369 ms
+(7) Calculation Skip Ratio execution time: 0.062624 ms
+Current iteration Skip Ratio = 0.96456
+Iteration 32: 13364 Reassignments
+
+[Current Iteration = 33]
+(5) Iteration 33 Global Filter to Local Filter: 1186115
+(6) Local Filter Baseline kernel execution time: 308.035400 ms
+(6) Early Skip Ratio Marking kernel execution time: 69.598434 ms
+(7) Calculation Skip Ratio execution time: 0.051648 ms
+Current iteration Skip Ratio = 0.96054
+Iteration 33: 12828 Reassignments
+Yinyang K-Means total execution time: 97060.968750 ms
+calculating the average distance...
+return kmcudaSuccess

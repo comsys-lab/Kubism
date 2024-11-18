@@ -1,0 +1,456 @@
+GPU #0 memory: used 9224665344 bytes (28.8%), free 22848526080 bytes, total 32073191424 bytes
+
+
+running Lloyd until reassignments drop below 110000
+Iteration 1: 1000000 Reassignments
+Iteration 2: 459021 Reassignments
+Iteration 3: 145582 Reassignments
+Iteration 4: 100975 Reassignments
+Iteration 1: 1024 Reassignments
+Iteration 2: 5 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 1978.907959 ms
+
+[Current Iteration = 4]
+(5) Iteration 4 Global Filter to Local Filter: 947612
+(6) Local Filter Marking kernel execution time: 103.851326 ms
+(7) Threshold Setting kernel execution time: 42.926399 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.365601 ms
+(9-3-1) Skip Ratio = 0.9112
+(9-3-2) CPU Threads = 194176 GPU Threads = 753436 Thread ratio = 3.88
+(9-3-2) CPU calculation = 16217  GPU calculation = 56745 
+(9-3-3) Device to Host Data Transfer Time: 85.434433 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 1155.373047 ms
+(9-3-4) kernel start ~ sync start: 1155.374146 ms
+(9-3-5) Host To Device Data Transfer Time: 0.201984 ms
+(9-3-6) Iteration 4 Total Reassignments (CPU + GPU): 80328
+Iteration 4: 80328 Reassignments
+
+[Current Iteration = 5]
+(5) Iteration 5 Global Filter to Local Filter: 997033
+(6) Local Filter Marking kernel execution time: 382.235840 ms
+(7) Threshold Setting kernel execution time: 42.921986 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 24.027872 ms
+(9-3-1) Skip Ratio = 0.6013
+(9-3-2) CPU Threads = 204416 GPU Threads = 792617 Thread ratio = 3.88
+(9-3-2) CPU calculation = 63652  GPU calculation = 222216 
+(9-3-3) Device to Host Data Transfer Time: 91.342018 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 4590.833496 ms
+(9-3-4) kernel start ~ sync start: 4590.834473 ms
+(9-3-5) Host To Device Data Transfer Time: 0.396000 ms
+(9-3-6) Iteration 5 Total Reassignments (CPU + GPU): 66954
+Iteration 5: 66954 Reassignments
+
+[Current Iteration = 6]
+(5) Iteration 6 Global Filter to Local Filter: 998903
+(6) Local Filter Marking kernel execution time: 672.773926 ms
+(7) Threshold Setting kernel execution time: 42.721535 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 26.138271 ms
+(9-3-1) Skip Ratio = 0.2451
+(9-3-2) CPU Threads = 204800 GPU Threads = 794103 Thread ratio = 3.88
+(9-3-2) CPU calculation = 145891  GPU calculation = 526501 
+(9-3-3) Device to Host Data Transfer Time: 83.814301 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 7882.469238 ms
+(9-3-4) kernel start ~ sync start: 7882.470703 ms
+(9-3-5) Host To Device Data Transfer Time: 0.250368 ms
+(9-3-6) Iteration 6 Total Reassignments (CPU + GPU): 57262
+Iteration 6: 57262 Reassignments
+
+[Current Iteration = 7]
+(5) Iteration 7 Global Filter to Local Filter: 998973
+(6) Local Filter Marking kernel execution time: 689.375793 ms
+(7) Threshold Setting kernel execution time: 42.210430 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.080095 ms
+(9-3-1) Skip Ratio = 0.0638
+(9-3-2) CPU Threads = 204832 GPU Threads = 794141 Thread ratio = 3.88
+(9-3-2) CPU calculation = 199615  GPU calculation = 634381 
+(9-3-3) Device to Host Data Transfer Time: 87.729820 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 5854.909668 ms
+(9-3-4) kernel start ~ sync start: 5854.910645 ms
+(9-3-5) Host To Device Data Transfer Time: 0.202752 ms
+(9-3-6) Iteration 7 Total Reassignments (CPU + GPU): 49691
+Iteration 7: 49691 Reassignments
+
+[Current Iteration = 8]
+(5) Iteration 8 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 408.164398 ms
+(7) Threshold Setting kernel execution time: 42.692097 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.052320 ms
+(9-3-1) Skip Ratio = 0.0133
+(9-3-2) CPU Threads = 204832 GPU Threads = 794144 Thread ratio = 3.88
+(9-3-2) CPU calculation = 204056  GPU calculation = 601973 
+(9-3-3) Device to Host Data Transfer Time: 88.533028 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3764.229492 ms
+(9-3-4) kernel start ~ sync start: 3764.230713 ms
+(9-3-5) Host To Device Data Transfer Time: 0.216448 ms
+(9-3-6) Iteration 8 Total Reassignments (CPU + GPU): 43872
+Iteration 8: 43872 Reassignments
+
+[Current Iteration = 9]
+(5) Iteration 9 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 255.611877 ms
+(7) Threshold Setting kernel execution time: 42.704544 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.744513 ms
+(9-3-1) Skip Ratio = 0.0036
+(9-3-2) CPU Threads = 204832 GPU Threads = 794144 Thread ratio = 3.88
+(9-3-2) CPU calculation = 160317  GPU calculation = 673431 
+(9-3-3) Device to Host Data Transfer Time: 83.227936 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2979.739990 ms
+(9-3-4) kernel start ~ sync start: 2979.741211 ms
+(9-3-5) Host To Device Data Transfer Time: 0.213056 ms
+(9-3-6) Iteration 9 Total Reassignments (CPU + GPU): 39070
+Iteration 9: 39070 Reassignments
+
+[Current Iteration = 10]
+(5) Iteration 10 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 246.267899 ms
+(7) Threshold Setting kernel execution time: 43.047134 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.839552 ms
+(9-3-1) Skip Ratio = 0.0028
+(9-3-2) CPU Threads = 204832 GPU Threads = 794144 Thread ratio = 3.88
+(9-3-2) CPU calculation = 139875  GPU calculation = 763914 
+(9-3-3) Device to Host Data Transfer Time: 83.785027 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2935.600830 ms
+(9-3-4) kernel start ~ sync start: 2935.602051 ms
+(9-3-5) Host To Device Data Transfer Time: 0.406688 ms
+(9-3-6) Iteration 10 Total Reassignments (CPU + GPU): 35298
+Iteration 10: 35298 Reassignments
+
+[Current Iteration = 11]
+(5) Iteration 11 Global Filter to Local Filter: 998978
+(6) Local Filter Marking kernel execution time: 245.427643 ms
+(7) Threshold Setting kernel execution time: 42.715649 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.548479 ms
+(9-3-1) Skip Ratio = 0.0027
+(9-3-2) CPU Threads = 204832 GPU Threads = 794146 Thread ratio = 3.88
+(9-3-2) CPU calculation = 167387  GPU calculation = 558728 
+(9-3-3) Device to Host Data Transfer Time: 82.836639 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2904.031006 ms
+(9-3-4) kernel start ~ sync start: 2904.032227 ms
+(9-3-5) Host To Device Data Transfer Time: 0.354528 ms
+(9-3-6) Iteration 11 Total Reassignments (CPU + GPU): 32182
+Iteration 11: 32182 Reassignments
+
+[Current Iteration = 12]
+(5) Iteration 12 Global Filter to Local Filter: 998979
+(6) Local Filter Marking kernel execution time: 261.819916 ms
+(7) Threshold Setting kernel execution time: 42.526848 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 25.582369 ms
+(9-3-1) Skip Ratio = 0.0031
+(9-3-2) CPU Threads = 204832 GPU Threads = 794147 Thread ratio = 3.88
+(9-3-2) CPU calculation = 195912  GPU calculation = 647173 
+(9-3-3) Device to Host Data Transfer Time: 84.040894 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2969.589355 ms
+(9-3-4) kernel start ~ sync start: 2969.590332 ms
+(9-3-5) Host To Device Data Transfer Time: 0.191424 ms
+(9-3-6) Iteration 12 Total Reassignments (CPU + GPU): 29067
+Iteration 12: 29067 Reassignments
+
+[Current Iteration = 13]
+(5) Iteration 13 Global Filter to Local Filter: 998982
+(6) Local Filter Marking kernel execution time: 261.536346 ms
+(7) Threshold Setting kernel execution time: 42.688866 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.962463 ms
+(9-3-1) Skip Ratio = 0.0031
+(9-3-2) CPU Threads = 204800 GPU Threads = 794182 Thread ratio = 3.88
+(9-3-2) CPU calculation = 198075  GPU calculation = 774869 
+(9-3-3) Device to Host Data Transfer Time: 83.325249 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2977.281494 ms
+(9-3-4) kernel start ~ sync start: 2977.282471 ms
+(9-3-5) Host To Device Data Transfer Time: 0.200736 ms
+(9-3-6) Iteration 13 Total Reassignments (CPU + GPU): 26416
+Iteration 13: 26416 Reassignments
+
+[Current Iteration = 14]
+(5) Iteration 14 Global Filter to Local Filter: 998992
+(6) Local Filter Marking kernel execution time: 277.288818 ms
+(7) Threshold Setting kernel execution time: 42.443810 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.430496 ms
+(9-3-1) Skip Ratio = 0.0035
+(9-3-2) CPU Threads = 204864 GPU Threads = 794128 Thread ratio = 3.88
+(9-3-2) CPU calculation = 154177  GPU calculation = 688766 
+(9-3-3) Device to Host Data Transfer Time: 85.093117 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3014.595947 ms
+(9-3-4) kernel start ~ sync start: 3014.597168 ms
+(9-3-5) Host To Device Data Transfer Time: 0.207968 ms
+(9-3-6) Iteration 14 Total Reassignments (CPU + GPU): 24650
+Iteration 14: 24650 Reassignments
+
+[Current Iteration = 15]
+(5) Iteration 15 Global Filter to Local Filter: 999034
+(6) Local Filter Marking kernel execution time: 276.244141 ms
+(7) Threshold Setting kernel execution time: 42.752640 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.596512 ms
+(9-3-1) Skip Ratio = 0.0035
+(9-3-2) CPU Threads = 204832 GPU Threads = 794202 Thread ratio = 3.88
+(9-3-2) CPU calculation = 245991  GPU calculation = 689642 
+(9-3-3) Device to Host Data Transfer Time: 84.501411 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3011.021484 ms
+(9-3-4) kernel start ~ sync start: 3011.022461 ms
+(9-3-5) Host To Device Data Transfer Time: 0.204832 ms
+(9-3-6) Iteration 15 Total Reassignments (CPU + GPU): 22776
+Iteration 15: 22776 Reassignments
+
+[Current Iteration = 16]
+(5) Iteration 16 Global Filter to Local Filter: 999168
+(6) Local Filter Marking kernel execution time: 286.467194 ms
+(7) Threshold Setting kernel execution time: 42.154530 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.713505 ms
+(9-3-1) Skip Ratio = 0.0039
+(9-3-2) CPU Threads = 204864 GPU Threads = 794304 Thread ratio = 3.88
+(9-3-2) CPU calculation = 137618  GPU calculation = 563164 
+(9-3-3) Device to Host Data Transfer Time: 86.431137 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3059.907715 ms
+(9-3-4) kernel start ~ sync start: 3059.908936 ms
+(9-3-5) Host To Device Data Transfer Time: 0.199488 ms
+(9-3-6) Iteration 16 Total Reassignments (CPU + GPU): 21079
+Iteration 16: 21079 Reassignments
+
+[Current Iteration = 17]
+(5) Iteration 17 Global Filter to Local Filter: 999436
+(6) Local Filter Marking kernel execution time: 290.564423 ms
+(7) Threshold Setting kernel execution time: 42.668034 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.742369 ms
+(9-3-1) Skip Ratio = 0.0042
+(9-3-2) CPU Threads = 204896 GPU Threads = 794540 Thread ratio = 3.88
+(9-3-2) CPU calculation = 161277  GPU calculation = 566183 
+(9-3-3) Device to Host Data Transfer Time: 86.121475 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3053.581055 ms
+(9-3-4) kernel start ~ sync start: 3053.582031 ms
+(9-3-5) Host To Device Data Transfer Time: 0.461440 ms
+(9-3-6) Iteration 17 Total Reassignments (CPU + GPU): 19671
+Iteration 17: 19671 Reassignments
+
+[Current Iteration = 18]
+(5) Iteration 18 Global Filter to Local Filter: 999764
+(6) Local Filter Marking kernel execution time: 301.642029 ms
+(7) Threshold Setting kernel execution time: 42.754814 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.564064 ms
+(9-3-1) Skip Ratio = 0.0048
+(9-3-2) CPU Threads = 204960 GPU Threads = 794804 Thread ratio = 3.88
+(9-3-2) CPU calculation = 203827  GPU calculation = 567020 
+(9-3-3) Device to Host Data Transfer Time: 84.587555 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3094.630615 ms
+(9-3-4) kernel start ~ sync start: 3094.631592 ms
+(9-3-5) Host To Device Data Transfer Time: 0.202112 ms
+(9-3-6) Iteration 18 Total Reassignments (CPU + GPU): 18450
+Iteration 18: 18450 Reassignments
+
+[Current Iteration = 19]
+(5) Iteration 19 Global Filter to Local Filter: 999945
+(6) Local Filter Marking kernel execution time: 295.680206 ms
+(7) Threshold Setting kernel execution time: 42.757984 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 24.056641 ms
+(9-3-1) Skip Ratio = 0.0049
+(9-3-2) CPU Threads = 204992 GPU Threads = 794953 Thread ratio = 3.88
+(9-3-2) CPU calculation = 208097  GPU calculation = 570947 
+(9-3-3) Device to Host Data Transfer Time: 83.774078 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3131.732422 ms
+(9-3-4) kernel start ~ sync start: 3131.733643 ms
+(9-3-5) Host To Device Data Transfer Time: 0.354912 ms
+(9-3-6) Iteration 19 Total Reassignments (CPU + GPU): 17163
+Iteration 19: 17163 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 1978.563232 ms
+
+[Current Iteration = 20]
+(5) Iteration 20 Global Filter to Local Filter: 472082
+(6) Local Filter Marking kernel execution time: 31.041409 ms
+(7) Threshold Setting kernel execution time: 42.650398 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 13.007936 ms
+(9-3-1) Skip Ratio = 0.9801
+(9-3-2) CPU Threads = 96832 GPU Threads = 375250 Thread ratio = 3.88
+(9-3-2) CPU calculation = 2893  GPU calculation = 4426 
+(9-3-3) Device to Host Data Transfer Time: 81.237282 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 150.619995 ms
+(9-3-4) kernel start ~ sync start: 150.621124 ms
+(9-3-5) Host To Device Data Transfer Time: 0.242112 ms
+(9-3-6) Iteration 20 Total Reassignments (CPU + GPU): 16159
+Iteration 20: 16159 Reassignments
+
+[Current Iteration = 21]
+(5) Iteration 21 Global Filter to Local Filter: 786465
+(6) Local Filter Marking kernel execution time: 59.355232 ms
+(7) Threshold Setting kernel execution time: 42.678047 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 18.979937 ms
+(9-3-1) Skip Ratio = 0.9520
+(9-3-2) CPU Threads = 161056 GPU Threads = 625409 Thread ratio = 3.88
+(9-3-2) CPU calculation = 9665  GPU calculation = 26891 
+(9-3-3) Device to Host Data Transfer Time: 80.706947 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 539.041870 ms
+(9-3-4) kernel start ~ sync start: 539.043091 ms
+(9-3-5) Host To Device Data Transfer Time: 0.200672 ms
+(9-3-6) Iteration 21 Total Reassignments (CPU + GPU): 15098
+Iteration 21: 15098 Reassignments
+
+[Current Iteration = 22]
+(5) Iteration 22 Global Filter to Local Filter: 921161
+(6) Local Filter Marking kernel execution time: 104.696129 ms
+(7) Threshold Setting kernel execution time: 42.959618 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.071136 ms
+(9-3-1) Skip Ratio = 0.9068
+(9-3-2) CPU Threads = 188800 GPU Threads = 732361 Thread ratio = 3.88
+(9-3-2) CPU calculation = 16981  GPU calculation = 59450 
+(9-3-3) Device to Host Data Transfer Time: 81.188545 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 1163.509766 ms
+(9-3-4) kernel start ~ sync start: 1163.510986 ms
+(9-3-5) Host To Device Data Transfer Time: 0.190784 ms
+(9-3-6) Iteration 22 Total Reassignments (CPU + GPU): 14097
+Iteration 22: 14097 Reassignments
+
+[Current Iteration = 23]
+(5) Iteration 23 Global Filter to Local Filter: 971934
+(6) Local Filter Marking kernel execution time: 174.296921 ms
+(7) Threshold Setting kernel execution time: 42.677185 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.989120 ms
+(9-3-1) Skip Ratio = 0.8330
+(9-3-2) CPU Threads = 199168 GPU Threads = 772766 Thread ratio = 3.88
+(9-3-2) CPU calculation = 27472  GPU calculation = 82398 
+(9-3-3) Device to Host Data Transfer Time: 81.749535 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 2093.482178 ms
+(9-3-4) kernel start ~ sync start: 2093.483398 ms
+(9-3-5) Host To Device Data Transfer Time: 0.373280 ms
+(9-3-6) Iteration 23 Total Reassignments (CPU + GPU): 13359
+Iteration 23: 13359 Reassignments
+
+[Current Iteration = 24]
+(5) Iteration 24 Global Filter to Local Filter: 989948
+(6) Local Filter Marking kernel execution time: 270.786438 ms
+(7) Threshold Setting kernel execution time: 42.156609 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.419519 ms
+(9-3-1) Skip Ratio = 0.7289
+(9-3-2) CPU Threads = 202944 GPU Threads = 787004 Thread ratio = 3.88
+(9-3-2) CPU calculation = 44150  GPU calculation = 188640 
+(9-3-3) Device to Host Data Transfer Time: 84.822044 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 3270.231445 ms
+(9-3-4) kernel start ~ sync start: 3270.232666 ms
+(9-3-5) Host To Device Data Transfer Time: 0.507168 ms
+(9-3-6) Iteration 24 Total Reassignments (CPU + GPU): 12770
+Iteration 24: 12770 Reassignments
+
+[Current Iteration = 25]
+(5) Iteration 25 Global Filter to Local Filter: 996108
+(6) Local Filter Marking kernel execution time: 385.433350 ms
+(7) Threshold Setting kernel execution time: 42.784096 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 23.660416 ms
+(9-3-1) Skip Ratio = 0.5992
+(9-3-2) CPU Threads = 204224 GPU Threads = 791884 Thread ratio = 3.88
+(9-3-2) CPU calculation = 80314  GPU calculation = 286563 
+(9-3-3) Device to Host Data Transfer Time: 87.557022 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 4636.357422 ms
+(9-3-4) kernel start ~ sync start: 4636.358398 ms
+(9-3-5) Host To Device Data Transfer Time: 0.208576 ms
+(9-3-6) Iteration 25 Total Reassignments (CPU + GPU): 12214
+Iteration 25: 12214 Reassignments
+
+[Current Iteration = 26]
+(5) Iteration 26 Global Filter to Local Filter: 998144
+(6) Local Filter Marking kernel execution time: 506.523285 ms
+(7) Threshold Setting kernel execution time: 42.328960 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.599104 ms
+(9-3-1) Skip Ratio = 0.4592
+(9-3-2) CPU Threads = 204640 GPU Threads = 793504 Thread ratio = 3.88
+(9-3-2) CPU calculation = 95435  GPU calculation = 341520 
+(9-3-3) Device to Host Data Transfer Time: 82.586403 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 6127.197266 ms
+(9-3-4) kernel start ~ sync start: 6127.198730 ms
+(9-3-5) Host To Device Data Transfer Time: 0.489504 ms
+(9-3-6) Iteration 26 Total Reassignments (CPU + GPU): 11663
+Iteration 26: 11663 Reassignments
+
+[Current Iteration = 27]
+(5) Iteration 27 Global Filter to Local Filter: 998744
+(6) Local Filter Marking kernel execution time: 614.998352 ms
+(7) Threshold Setting kernel execution time: 42.818687 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 22.896992 ms
+(9-3-1) Skip Ratio = 0.3279
+(9-3-2) CPU Threads = 204768 GPU Threads = 793976 Thread ratio = 3.88
+(9-3-2) CPU calculation = 120351  GPU calculation = 414004 
+(9-3-3) Device to Host Data Transfer Time: 89.504158 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 7403.892578 ms
+(9-3-4) kernel start ~ sync start: 7403.894043 ms
+(9-3-5) Host To Device Data Transfer Time: 0.386080 ms
+(9-3-6) Iteration 27 Total Reassignments (CPU + GPU): 11053
+Iteration 27: 11053 Reassignments
+
+[Current Iteration = 28]
+(5) Iteration 28 Global Filter to Local Filter: 998906
+(6) Local Filter Marking kernel execution time: 694.991699 ms
+(7) Threshold Setting kernel execution time: 42.785854 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 24.275393 ms
+(9-3-1) Skip Ratio = 0.2200
+(9-3-2) CPU Threads = 204800 GPU Threads = 794106 Thread ratio = 3.88
+(9-3-2) CPU calculation = 124485  GPU calculation = 435382 
+(9-3-3) Device to Host Data Transfer Time: 92.090401 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 7979.383789 ms
+(9-3-4) kernel start ~ sync start: 7979.384766 ms
+(9-3-5) Host To Device Data Transfer Time: 0.361120 ms
+(9-3-6) Iteration 28 Total Reassignments (CPU + GPU): 10636
+Iteration 28: 10636 Reassignments
+
+[Current Iteration = 29]
+(5) Iteration 29 Global Filter to Local Filter: 998959
+(6) Local Filter Marking kernel execution time: 734.290100 ms
+(7) Threshold Setting kernel execution time: 42.809566 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 25.002176 ms
+(9-3-1) Skip Ratio = 0.1386
+(9-3-2) CPU Threads = 204832 GPU Threads = 794127 Thread ratio = 3.88
+(9-3-2) CPU calculation = 197043  GPU calculation = 518178 
+(9-3-3) Device to Host Data Transfer Time: 92.109215 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 7739.152344 ms
+(9-3-4) kernel start ~ sync start: 7739.153320 ms
+(9-3-5) Host To Device Data Transfer Time: 0.262464 ms
+(9-3-6) Iteration 29 Total Reassignments (CPU + GPU): 10178
+Iteration 29: 10178 Reassignments
+
+[Current Iteration = 30]
+(5) Iteration 30 Global Filter to Local Filter: 998973
+(6) Local Filter Marking kernel execution time: 725.888916 ms
+(7) Threshold Setting kernel execution time: 42.803520 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 26.856129 ms
+(9-3-1) Skip Ratio = 0.0825
+(9-3-2) CPU Threads = 204832 GPU Threads = 794141 Thread ratio = 3.88
+(9-3-2) CPU calculation = 170401  GPU calculation = 561301 
+(9-3-3) Device to Host Data Transfer Time: 90.631874 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 6594.652832 ms
+(9-3-4) kernel start ~ sync start: 6594.653809 ms
+(9-3-5) Host To Device Data Transfer Time: 0.447232 ms
+(9-3-6) Iteration 30 Total Reassignments (CPU + GPU): 9624
+Iteration 30: 9624 Reassignments
+
+[Current Iteration = 31]
+(5) Iteration 31 Global Filter to Local Filter: 998975
+(6) Local Filter Marking kernel execution time: 663.120056 ms
+(7) Threshold Setting kernel execution time: 42.469185 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 27.389664 ms
+(9-3-1) Skip Ratio = 0.0474
+(9-3-2) CPU Threads = 204832 GPU Threads = 794143 Thread ratio = 3.88
+(9-3-2) CPU calculation = 145820  GPU calculation = 538292 
+(9-3-3) Device to Host Data Transfer Time: 88.590141 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 5347.012695 ms
+(9-3-4) kernel start ~ sync start: 5347.013672 ms
+(9-3-5) Host To Device Data Transfer Time: 0.529568 ms
+(9-3-6) Iteration 31 Total Reassignments (CPU + GPU): 9280
+Iteration 31: 9280 Reassignments
+
+[Current Iteration = 32]
+(5) Iteration 32 Global Filter to Local Filter: 998975
+(6) Local Filter Marking kernel execution time: 577.250061 ms
+(7) Threshold Setting kernel execution time: 42.822559 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 25.891680 ms
+(9-3-1) Skip Ratio = 0.0274
+(9-3-2) CPU Threads = 204832 GPU Threads = 794143 Thread ratio = 3.88
+(9-3-2) CPU calculation = 183571  GPU calculation = 578658 
+(9-3-3) Device to Host Data Transfer Time: 93.956573 ms
+(9-3-4) Reordering + Warp Divergence + Heterogeneous kernel execution time: 4498.610352 ms
+(9-3-4) kernel start ~ sync start: 4498.611816 ms
+(9-3-5) Host To Device Data Transfer Time: 0.245600 ms
+(9-3-6) Iteration 32 Total Reassignments (CPU + GPU): 8889
+Iteration 32: 8889 Reassignments
+Yinyang K-Means total execution time: 182853.343750 ms
+calculating the average distance...
+return kmcudaSuccess

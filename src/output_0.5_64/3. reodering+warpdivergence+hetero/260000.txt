@@ -1,0 +1,569 @@
+GPU #0 memory: used 9980343552 bytes (31.1%), free 22092860160 bytes, total 32073203712 bytes
+
+
+running Lloyd until reassignments drop below 55000
+Iteration 1: 500000 Reassignments
+Iteration 2: 203343 Reassignments
+Iteration 3: 69590 Reassignments
+Iteration 4: 49191 Reassignments
+Iteration 1: 1024 Reassignments
+Iteration 2: 40 Reassignments
+Iteration 3: 11 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 422.964600 ms
+
+[Current Iteration = 4]
+(2) Centroid Adjust kernel execution time: 145.838272 ms
+(3) Drift Calculation kernel execution time: 0.800064 ms
+(4) Group Max Drifts kernel execution time: 0.846304 ms
+(5) Global Filter kernel execution time: 4.194816 ms
+(5) Iteration 4 Global Filter to Local Filter: 425420
+(6) Early Skip Ratio Marking kernel execution time: 19.144192 ms
+(7) Calculation Skip Ratio execution time: 0.055040 ms
+Current iteration Skip Ratio = 0.96240
+(6) Local Filter Marking kernel execution time: 28.480448 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 11.319008 ms
+(9-3-2) CPU Threads = 221152 GPU Threads = 204268 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.337120 ms
+(9-3-4) RWD kernel execution time: 154.824707 ms
+(9-3-4) kernel start ~ sync start: 154.825851 ms
+(9-3-5) Host To Device Data Transfer Time: 0.134592 ms
+(9-3-6) Iteration 4 Total Reassignments (CPU + GPU): 38304
+prev_skip_ratio = 0.962, current_skip_ratio = 0.962 
+Iteration 4: 38304 Reassignments
+
+[Current Iteration = 5]
+(2) Centroid Adjust kernel execution time: 141.400101 ms
+(3) Drift Calculation kernel execution time: 0.169760 ms
+(4) Group Max Drifts kernel execution time: 0.192096 ms
+(5) Global Filter kernel execution time: 4.126880 ms
+(5) Iteration 5 Global Filter to Local Filter: 489717
+(6) Early Skip Ratio Marking kernel execution time: 20.546753 ms
+(7) Calculation Skip Ratio execution time: 0.054976 ms
+Current iteration Skip Ratio = 0.84397
+(6) Local Filter Marking kernel execution time: 44.830273 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.790912 ms
+(9-3-2) CPU Threads = 254624 GPU Threads = 235093 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.317088 ms
+(9-3-4) RWD kernel execution time: 436.114197 ms
+(9-3-4) kernel start ~ sync start: 436.115387 ms
+(9-3-5) Host To Device Data Transfer Time: 0.116768 ms
+(9-3-6) Iteration 5 Total Reassignments (CPU + GPU): 31623
+prev_skip_ratio = 0.844, current_skip_ratio = 0.844 
+Iteration 5: 31623 Reassignments
+
+[Current Iteration = 6]
+(2) Centroid Adjust kernel execution time: 138.877243 ms
+(3) Drift Calculation kernel execution time: 0.126624 ms
+(4) Group Max Drifts kernel execution time: 0.173184 ms
+(5) Global Filter kernel execution time: 4.081632 ms
+(5) Iteration 6 Global Filter to Local Filter: 497879
+(6) Early Skip Ratio Marking kernel execution time: 20.955233 ms
+(7) Calculation Skip Ratio execution time: 0.061856 ms
+Current iteration Skip Ratio = 0.64887
+(6) Local Filter Marking kernel execution time: 52.607841 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.533408 ms
+(9-3-2) CPU Threads = 258976 GPU Threads = 238903 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.319936 ms
+(9-3-4) RWD kernel execution time: 718.360596 ms
+(9-3-4) kernel start ~ sync start: 718.361755 ms
+(9-3-5) Host To Device Data Transfer Time: 0.115968 ms
+(9-3-6) Iteration 6 Total Reassignments (CPU + GPU): 27438
+prev_skip_ratio = 0.649, current_skip_ratio = 0.649 
+Iteration 6: 27438 Reassignments
+
+[Current Iteration = 7]
+(2) Centroid Adjust kernel execution time: 137.112061 ms
+(3) Drift Calculation kernel execution time: 0.126752 ms
+(4) Group Max Drifts kernel execution time: 0.174592 ms
+(5) Global Filter kernel execution time: 4.081312 ms
+(5) Iteration 7 Global Filter to Local Filter: 498878
+(6) Early Skip Ratio Marking kernel execution time: 20.993729 ms
+(7) Calculation Skip Ratio execution time: 0.055840 ms
+Current iteration Skip Ratio = 0.36523
+(6) Local Filter Marking kernel execution time: 54.613503 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.999072 ms
+(9-3-2) CPU Threads = 259456 GPU Threads = 239422 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.308800 ms
+(9-3-4) RWD kernel execution time: 885.993408 ms
+(9-3-4) kernel start ~ sync start: 1154.509888 ms
+(9-3-5) Host To Device Data Transfer Time: 0.131520 ms
+(9-3-6) Iteration 7 Total Reassignments (CPU + GPU): 24382
+prev_skip_ratio = 0.365, current_skip_ratio = 0.365 
+Iteration 7: 24382 Reassignments
+
+[Current Iteration = 8]
+(2) Centroid Adjust kernel execution time: 135.725922 ms
+(3) Drift Calculation kernel execution time: 0.127840 ms
+(4) Group Max Drifts kernel execution time: 0.177824 ms
+(5) Global Filter kernel execution time: 4.084736 ms
+(5) Iteration 8 Global Filter to Local Filter: 498963
+(6) Early Skip Ratio Marking kernel execution time: 20.988480 ms
+(7) Calculation Skip Ratio execution time: 0.057824 ms
+Current iteration Skip Ratio = 0.12413
+(6) Local Filter Marking kernel execution time: 53.341248 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.771040 ms
+(9-3-2) CPU Threads = 259488 GPU Threads = 239475 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.317760 ms
+(9-3-4) RWD kernel execution time: 935.686523 ms
+(9-3-4) kernel start ~ sync start: 1459.729858 ms
+(9-3-5) Host To Device Data Transfer Time: 0.139040 ms
+(9-3-6) Iteration 8 Total Reassignments (CPU + GPU): 21724
+prev_skip_ratio = 0.124, current_skip_ratio = 0.124 
+Iteration 8: 21724 Reassignments
+
+[Current Iteration = 9]
+(2) Centroid Adjust kernel execution time: 134.515259 ms
+(3) Drift Calculation kernel execution time: 0.114208 ms
+(4) Group Max Drifts kernel execution time: 0.179200 ms
+(5) Global Filter kernel execution time: 4.088416 ms
+(5) Iteration 9 Global Filter to Local Filter: 498975
+(6) Early Skip Ratio Marking kernel execution time: 21.082687 ms
+(7) Calculation Skip Ratio execution time: 0.059264 ms
+Current iteration Skip Ratio = -0.02300
+(6) Local Filter Marking kernel execution time: 54.138401 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.131328 ms
+(9-3-2) CPU Threads = 259488 GPU Threads = 239487 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.361184 ms
+(9-3-4) RWD kernel execution time: 938.211670 ms
+(9-3-4) kernel start ~ sync start: 1561.723145 ms
+(9-3-5) Host To Device Data Transfer Time: 0.129056 ms
+(9-3-6) Iteration 9 Total Reassignments (CPU + GPU): 19314
+prev_skip_ratio = -0.023, current_skip_ratio = -0.023 
+Iteration 9: 19314 Reassignments
+
+[Current Iteration = 10]
+(2) Centroid Adjust kernel execution time: 133.496735 ms
+(3) Drift Calculation kernel execution time: 0.101792 ms
+(4) Group Max Drifts kernel execution time: 0.178816 ms
+(5) Global Filter kernel execution time: 3.827552 ms
+(5) Iteration 10 Global Filter to Local Filter: 498976
+(6) Early Skip Ratio Marking kernel execution time: 20.853632 ms
+(7) Calculation Skip Ratio execution time: 0.057632 ms
+Current iteration Skip Ratio = -0.08203
+(6) Local Filter Marking kernel execution time: 52.200287 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.205504 ms
+(9-3-2) CPU Threads = 259520 GPU Threads = 239456 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.318944 ms
+(9-3-4) RWD kernel execution time: 938.019958 ms
+(9-3-4) kernel start ~ sync start: 1623.377563 ms
+(9-3-5) Host To Device Data Transfer Time: 0.520608 ms
+(9-3-6) Iteration 10 Total Reassignments (CPU + GPU): 17440
+prev_skip_ratio = -0.082, current_skip_ratio = -0.082 
+Iteration 10: 17440 Reassignments
+
+[Current Iteration = 11]
+(2) Centroid Adjust kernel execution time: 131.953506 ms
+(3) Drift Calculation kernel execution time: 0.120096 ms
+(4) Group Max Drifts kernel execution time: 0.172160 ms
+(5) Global Filter kernel execution time: 3.610304 ms
+(5) Iteration 11 Global Filter to Local Filter: 498979
+(6) Early Skip Ratio Marking kernel execution time: 20.361856 ms
+(7) Calculation Skip Ratio execution time: 0.055392 ms
+Current iteration Skip Ratio = -0.10558
+(6) Local Filter Marking kernel execution time: 51.195358 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.078752 ms
+(9-3-2) CPU Threads = 259520 GPU Threads = 239459 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.371584 ms
+(9-3-4) RWD kernel execution time: 937.706909 ms
+(9-3-4) kernel start ~ sync start: 1811.639526 ms
+(9-3-5) Host To Device Data Transfer Time: 0.143520 ms
+(9-3-6) Iteration 11 Total Reassignments (CPU + GPU): 15717
+prev_skip_ratio = -0.106, current_skip_ratio = -0.106 
+Iteration 11: 15717 Reassignments
+
+[Current Iteration = 12]
+(2) Centroid Adjust kernel execution time: 131.958298 ms
+(3) Drift Calculation kernel execution time: 0.656864 ms
+(4) Group Max Drifts kernel execution time: 0.756192 ms
+(5) Global Filter kernel execution time: 4.143072 ms
+(5) Iteration 12 Global Filter to Local Filter: 498990
+(6) Early Skip Ratio Marking kernel execution time: 21.206688 ms
+(7) Calculation Skip Ratio execution time: 0.066272 ms
+Current iteration Skip Ratio = -0.10590
+(6) Local Filter Marking kernel execution time: 50.489761 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.851808 ms
+(9-3-2) CPU Threads = 259520 GPU Threads = 239470 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.371456 ms
+(9-3-4) RWD kernel execution time: 937.528381 ms
+(9-3-4) kernel start ~ sync start: 1640.868286 ms
+(9-3-5) Host To Device Data Transfer Time: 0.123168 ms
+(9-3-6) Iteration 12 Total Reassignments (CPU + GPU): 14332
+prev_skip_ratio = -0.106, current_skip_ratio = -0.106 
+Iteration 12: 14332 Reassignments
+
+[Current Iteration = 13]
+(2) Centroid Adjust kernel execution time: 131.214523 ms
+(3) Drift Calculation kernel execution time: 0.140384 ms
+(4) Group Max Drifts kernel execution time: 0.174304 ms
+(5) Global Filter kernel execution time: 4.278112 ms
+(5) Iteration 13 Global Filter to Local Filter: 499046
+(6) Early Skip Ratio Marking kernel execution time: 20.729664 ms
+(7) Calculation Skip Ratio execution time: 0.047296 ms
+Current iteration Skip Ratio = -0.10710
+(6) Local Filter Marking kernel execution time: 51.870495 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.269536 ms
+(9-3-2) CPU Threads = 259552 GPU Threads = 239494 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.311328 ms
+(9-3-4) RWD kernel execution time: 937.447815 ms
+(9-3-4) kernel start ~ sync start: 1894.133667 ms
+(9-3-5) Host To Device Data Transfer Time: 0.137536 ms
+(9-3-6) Iteration 13 Total Reassignments (CPU + GPU): 13084
+prev_skip_ratio = -0.107, current_skip_ratio = -0.107 
+Iteration 13: 13084 Reassignments
+
+[Current Iteration = 14]
+(2) Centroid Adjust kernel execution time: 130.431961 ms
+(3) Drift Calculation kernel execution time: 0.124736 ms
+(4) Group Max Drifts kernel execution time: 0.177472 ms
+(5) Global Filter kernel execution time: 3.581056 ms
+(5) Iteration 14 Global Filter to Local Filter: 499190
+(6) Early Skip Ratio Marking kernel execution time: 20.773249 ms
+(7) Calculation Skip Ratio execution time: 0.068224 ms
+Current iteration Skip Ratio = -0.10710
+(6) Local Filter Marking kernel execution time: 51.813538 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 13.151008 ms
+(9-3-2) CPU Threads = 259616 GPU Threads = 239574 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.403520 ms
+(9-3-4) RWD kernel execution time: 937.553040 ms
+(9-3-4) kernel start ~ sync start: 1641.468506 ms
+(9-3-5) Host To Device Data Transfer Time: 0.111680 ms
+(9-3-6) Iteration 14 Total Reassignments (CPU + GPU): 11995
+prev_skip_ratio = -0.107, current_skip_ratio = -0.107 
+Iteration 14: 11995 Reassignments
+
+[Current Iteration = 15]
+(2) Centroid Adjust kernel execution time: 129.897278 ms
+(3) Drift Calculation kernel execution time: 0.142464 ms
+(4) Group Max Drifts kernel execution time: 0.205920 ms
+(5) Global Filter kernel execution time: 4.128448 ms
+(5) Iteration 15 Global Filter to Local Filter: 499431
+(6) Early Skip Ratio Marking kernel execution time: 21.249792 ms
+(7) Calculation Skip Ratio execution time: 0.058560 ms
+Current iteration Skip Ratio = -0.10579
+(6) Local Filter Marking kernel execution time: 52.881599 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.871616 ms
+(9-3-2) CPU Threads = 259712 GPU Threads = 239719 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.322752 ms
+(9-3-4) RWD kernel execution time: 937.462769 ms
+(9-3-4) kernel start ~ sync start: 1843.633057 ms
+(9-3-5) Host To Device Data Transfer Time: 0.129696 ms
+(9-3-6) Iteration 15 Total Reassignments (CPU + GPU): 11233
+prev_skip_ratio = -0.106, current_skip_ratio = -0.106 
+Iteration 15: 11233 Reassignments
+
+[Current Iteration = 16]
+(2) Centroid Adjust kernel execution time: 129.571457 ms
+(3) Drift Calculation kernel execution time: 0.117056 ms
+(4) Group Max Drifts kernel execution time: 0.180352 ms
+(5) Global Filter kernel execution time: 3.568000 ms
+(5) Iteration 16 Global Filter to Local Filter: 499760
+(6) Early Skip Ratio Marking kernel execution time: 21.099712 ms
+(7) Calculation Skip Ratio execution time: 0.065248 ms
+Current iteration Skip Ratio = -0.10970
+(6) Local Filter Marking kernel execution time: 51.720638 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.863616 ms
+(9-3-2) CPU Threads = 259904 GPU Threads = 239856 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.351936 ms
+(9-3-4) RWD kernel execution time: 937.460571 ms
+(9-3-4) kernel start ~ sync start: 1651.937744 ms
+(9-3-5) Host To Device Data Transfer Time: 0.393376 ms
+(9-3-6) Iteration 16 Total Reassignments (CPU + GPU): 10504
+prev_skip_ratio = -0.110, current_skip_ratio = -0.110 
+Iteration 16: 10504 Reassignments
+
+[Current Iteration = 17]
+(2) Centroid Adjust kernel execution time: 129.224167 ms
+(3) Drift Calculation kernel execution time: 0.136416 ms
+(4) Group Max Drifts kernel execution time: 0.737440 ms
+(5) Global Filter kernel execution time: 4.323008 ms
+(5) Iteration 17 Global Filter to Local Filter: 499930
+(6) Early Skip Ratio Marking kernel execution time: 20.988993 ms
+(7) Calculation Skip Ratio execution time: 0.069920 ms
+Current iteration Skip Ratio = -0.10514
+(6) Local Filter Marking kernel execution time: 50.239681 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.838688 ms
+(9-3-2) CPU Threads = 259968 GPU Threads = 239962 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 1.149184 ms
+(9-3-4) RWD kernel execution time: 937.432617 ms
+(9-3-4) kernel start ~ sync start: 1661.321899 ms
+(9-3-5) Host To Device Data Transfer Time: 0.279744 ms
+(9-3-6) Iteration 17 Total Reassignments (CPU + GPU): 9970
+prev_skip_ratio = -0.105, current_skip_ratio = -0.105 
+Iteration 17: 9970 Reassignments
+
+[Current Iteration = 18]
+(2) Centroid Adjust kernel execution time: 129.068283 ms
+(3) Drift Calculation kernel execution time: 0.654720 ms
+(4) Group Max Drifts kernel execution time: 0.201056 ms
+(5) Global Filter kernel execution time: 4.074784 ms
+(5) Iteration 18 Global Filter to Local Filter: 499982
+(6) Early Skip Ratio Marking kernel execution time: 20.780289 ms
+(7) Calculation Skip Ratio execution time: 0.063424 ms
+Current iteration Skip Ratio = -0.10764
+(6) Local Filter Marking kernel execution time: 52.372929 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.852256 ms
+(9-3-2) CPU Threads = 260000 GPU Threads = 239982 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.313088 ms
+(9-3-4) RWD kernel execution time: 937.434998 ms
+(9-3-4) kernel start ~ sync start: 1685.655396 ms
+(9-3-5) Host To Device Data Transfer Time: 0.521664 ms
+(9-3-6) Iteration 18 Total Reassignments (CPU + GPU): 9345
+prev_skip_ratio = -0.108, current_skip_ratio = -0.108 
+Iteration 18: 9345 Reassignments
+start initialize! cnt = 1.000000
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 423.149231 ms
+
+[Current Iteration = 19]
+(2) Centroid Adjust kernel execution time: 128.821320 ms
+(3) Drift Calculation kernel execution time: 0.129664 ms
+(4) Group Max Drifts kernel execution time: 0.196992 ms
+(5) Global Filter kernel execution time: 3.508640 ms
+(5) Iteration 19 Global Filter to Local Filter: 187728
+(6) Early Skip Ratio Marking kernel execution time: 13.229024 ms
+(7) Calculation Skip Ratio execution time: 0.062016 ms
+Current iteration Skip Ratio = 0.96908
+(6) Local Filter Marking kernel execution time: 17.726944 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 6.554816 ms
+(9-3-2) CPU Threads = 97088 GPU Threads = 90640 Thread ratio = 0.93
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 1.453024 ms
+(9-3-4) RWD kernel execution time: 27.321312 ms
+(9-3-4) kernel start ~ sync start: 29.410336 ms
+(9-3-5) Host To Device Data Transfer Time: 0.265856 ms
+(9-3-6) Iteration 19 Total Reassignments (CPU + GPU): 8319
+prev_skip_ratio = 0.969, current_skip_ratio = 0.969 
+Iteration 19: 8319 Reassignments
+
+[Current Iteration = 20]
+(2) Centroid Adjust kernel execution time: 127.992577 ms
+(3) Drift Calculation kernel execution time: 0.125792 ms
+(4) Group Max Drifts kernel execution time: 0.177216 ms
+(5) Global Filter kernel execution time: 3.997952 ms
+(5) Iteration 20 Global Filter to Local Filter: 335075
+(6) Early Skip Ratio Marking kernel execution time: 15.725856 ms
+(7) Calculation Skip Ratio execution time: 0.065120 ms
+Current iteration Skip Ratio = 0.95394
+(6) Local Filter Marking kernel execution time: 23.401600 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 9.846432 ms
+(9-3-2) CPU Threads = 173856 GPU Threads = 161219 Thread ratio = 0.93
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.336096 ms
+(9-3-4) RWD kernel execution time: 92.781792 ms
+(9-3-4) kernel start ~ sync start: 92.782974 ms
+(9-3-5) Host To Device Data Transfer Time: 0.114976 ms
+(9-3-6) Iteration 20 Total Reassignments (CPU + GPU): 7698
+prev_skip_ratio = 0.954, current_skip_ratio = 0.954 
+Iteration 20: 7698 Reassignments
+
+[Current Iteration = 21]
+(2) Centroid Adjust kernel execution time: 127.097183 ms
+(3) Drift Calculation kernel execution time: 0.128608 ms
+(4) Group Max Drifts kernel execution time: 0.723232 ms
+(5) Global Filter kernel execution time: 3.752480 ms
+(5) Iteration 21 Global Filter to Local Filter: 418225
+(6) Early Skip Ratio Marking kernel execution time: 18.107904 ms
+(7) Calculation Skip Ratio execution time: 0.054112 ms
+Current iteration Skip Ratio = 0.93530
+(6) Local Filter Marking kernel execution time: 30.025280 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 10.964608 ms
+(9-3-2) CPU Threads = 217184 GPU Threads = 201041 Thread ratio = 0.93
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 1.937952 ms
+(9-3-4) RWD kernel execution time: 170.891235 ms
+(9-3-4) kernel start ~ sync start: 170.892380 ms
+(9-3-5) Host To Device Data Transfer Time: 0.115200 ms
+(9-3-6) Iteration 21 Total Reassignments (CPU + GPU): 7219
+prev_skip_ratio = 0.935, current_skip_ratio = 0.935 
+Iteration 21: 7219 Reassignments
+
+[Current Iteration = 22]
+(2) Centroid Adjust kernel execution time: 127.454147 ms
+(3) Drift Calculation kernel execution time: 0.174624 ms
+(4) Group Max Drifts kernel execution time: 0.175968 ms
+(5) Global Filter kernel execution time: 3.774016 ms
+(5) Iteration 22 Global Filter to Local Filter: 460448
+(6) Early Skip Ratio Marking kernel execution time: 19.848160 ms
+(7) Calculation Skip Ratio execution time: 0.069568 ms
+Current iteration Skip Ratio = 0.90365
+(6) Local Filter Marking kernel execution time: 36.437057 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 11.287776 ms
+(9-3-2) CPU Threads = 239456 GPU Threads = 220992 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.407232 ms
+(9-3-4) RWD kernel execution time: 263.171814 ms
+(9-3-4) kernel start ~ sync start: 263.173065 ms
+(9-3-5) Host To Device Data Transfer Time: 0.170976 ms
+(9-3-6) Iteration 22 Total Reassignments (CPU + GPU): 6785
+prev_skip_ratio = 0.904, current_skip_ratio = 0.904 
+Iteration 22: 6785 Reassignments
+
+[Current Iteration = 23]
+(2) Centroid Adjust kernel execution time: 127.243484 ms
+(3) Drift Calculation kernel execution time: 0.122240 ms
+(4) Group Max Drifts kernel execution time: 0.175648 ms
+(5) Global Filter kernel execution time: 3.497344 ms
+(5) Iteration 23 Global Filter to Local Filter: 480999
+(6) Early Skip Ratio Marking kernel execution time: 20.394560 ms
+(7) Calculation Skip Ratio execution time: 0.065024 ms
+Current iteration Skip Ratio = 0.85362
+(6) Local Filter Marking kernel execution time: 41.758785 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.215104 ms
+(9-3-2) CPU Threads = 250048 GPU Threads = 230951 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.330848 ms
+(9-3-4) RWD kernel execution time: 376.619995 ms
+(9-3-4) kernel start ~ sync start: 376.621155 ms
+(9-3-5) Host To Device Data Transfer Time: 0.114336 ms
+(9-3-6) Iteration 23 Total Reassignments (CPU + GPU): 6430
+prev_skip_ratio = 0.854, current_skip_ratio = 0.854 
+Iteration 23: 6430 Reassignments
+
+[Current Iteration = 24]
+(2) Centroid Adjust kernel execution time: 126.973053 ms
+(3) Drift Calculation kernel execution time: 0.130688 ms
+(4) Group Max Drifts kernel execution time: 0.176448 ms
+(5) Global Filter kernel execution time: 4.119712 ms
+(5) Iteration 24 Global Filter to Local Filter: 490937
+(6) Early Skip Ratio Marking kernel execution time: 20.628672 ms
+(7) Calculation Skip Ratio execution time: 0.068128 ms
+Current iteration Skip Ratio = 0.81120
+(6) Local Filter Marking kernel execution time: 48.861217 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 11.900544 ms
+(9-3-2) CPU Threads = 255232 GPU Threads = 235705 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.330368 ms
+(9-3-4) RWD kernel execution time: 488.282867 ms
+(9-3-4) kernel start ~ sync start: 488.284058 ms
+(9-3-5) Host To Device Data Transfer Time: 0.118688 ms
+(9-3-6) Iteration 24 Total Reassignments (CPU + GPU): 6213
+prev_skip_ratio = 0.811, current_skip_ratio = 0.811 
+Iteration 24: 6213 Reassignments
+
+[Current Iteration = 25]
+(2) Centroid Adjust kernel execution time: 127.240669 ms
+(3) Drift Calculation kernel execution time: 0.145248 ms
+(4) Group Max Drifts kernel execution time: 0.213184 ms
+(5) Global Filter kernel execution time: 4.087776 ms
+(5) Iteration 25 Global Filter to Local Filter: 495406
+(6) Early Skip Ratio Marking kernel execution time: 21.101503 ms
+(7) Calculation Skip Ratio execution time: 0.047008 ms
+Current iteration Skip Ratio = 0.73145
+(6) Local Filter Marking kernel execution time: 51.524799 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.643776 ms
+(9-3-2) CPU Threads = 257632 GPU Threads = 237774 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.882176 ms
+(9-3-4) RWD kernel execution time: 598.126404 ms
+(9-3-4) kernel start ~ sync start: 598.127563 ms
+(9-3-5) Host To Device Data Transfer Time: 0.118944 ms
+(9-3-6) Iteration 25 Total Reassignments (CPU + GPU): 5847
+prev_skip_ratio = 0.731, current_skip_ratio = 0.731 
+Iteration 25: 5847 Reassignments
+
+[Current Iteration = 26]
+(2) Centroid Adjust kernel execution time: 126.720802 ms
+(3) Drift Calculation kernel execution time: 0.716960 ms
+(4) Group Max Drifts kernel execution time: 0.199168 ms
+(5) Global Filter kernel execution time: 4.063840 ms
+(5) Iteration 26 Global Filter to Local Filter: 497501
+(6) Early Skip Ratio Marking kernel execution time: 20.934912 ms
+(7) Calculation Skip Ratio execution time: 0.072736 ms
+Current iteration Skip Ratio = 0.64160
+(6) Local Filter Marking kernel execution time: 52.555679 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.573536 ms
+(9-3-2) CPU Threads = 258752 GPU Threads = 238749 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.342656 ms
+(9-3-4) RWD kernel execution time: 709.213440 ms
+(9-3-4) kernel start ~ sync start: 725.560242 ms
+(9-3-5) Host To Device Data Transfer Time: 0.115904 ms
+(9-3-6) Iteration 26 Total Reassignments (CPU + GPU): 5548
+prev_skip_ratio = 0.642, current_skip_ratio = 0.642 
+Iteration 26: 5548 Reassignments
+
+[Current Iteration = 27]
+(2) Centroid Adjust kernel execution time: 126.529633 ms
+(3) Drift Calculation kernel execution time: 0.161920 ms
+(4) Group Max Drifts kernel execution time: 0.219040 ms
+(5) Global Filter kernel execution time: 4.096416 ms
+(5) Iteration 27 Global Filter to Local Filter: 498373
+(6) Early Skip Ratio Marking kernel execution time: 21.072577 ms
+(7) Calculation Skip Ratio execution time: 0.067392 ms
+Current iteration Skip Ratio = 0.53385
+(6) Local Filter Marking kernel execution time: 52.907009 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.686176 ms
+(9-3-2) CPU Threads = 259168 GPU Threads = 239205 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.335456 ms
+(9-3-4) RWD kernel execution time: 793.333069 ms
+(9-3-4) kernel start ~ sync start: 900.253418 ms
+(9-3-5) Host To Device Data Transfer Time: 0.114400 ms
+(9-3-6) Iteration 27 Total Reassignments (CPU + GPU): 5247
+prev_skip_ratio = 0.534, current_skip_ratio = 0.534 
+Iteration 27: 5247 Reassignments
+
+[Current Iteration = 28]
+(2) Centroid Adjust kernel execution time: 126.412125 ms
+(3) Drift Calculation kernel execution time: 0.118080 ms
+(4) Group Max Drifts kernel execution time: 0.173472 ms
+(5) Global Filter kernel execution time: 3.499072 ms
+(5) Iteration 28 Global Filter to Local Filter: 498733
+(6) Early Skip Ratio Marking kernel execution time: 21.025921 ms
+(7) Calculation Skip Ratio execution time: 0.056704 ms
+Current iteration Skip Ratio = 0.42708
+(6) Local Filter Marking kernel execution time: 56.371521 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.597792 ms
+(9-3-2) CPU Threads = 259360 GPU Threads = 239373 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 1.536928 ms
+(9-3-4) RWD kernel execution time: 853.791016 ms
+(9-3-4) kernel start ~ sync start: 1002.254639 ms
+(9-3-5) Host To Device Data Transfer Time: 0.503648 ms
+(9-3-6) Iteration 28 Total Reassignments (CPU + GPU): 5114
+prev_skip_ratio = 0.427, current_skip_ratio = 0.427 
+Iteration 28: 5114 Reassignments
+
+[Current Iteration = 29]
+(2) Centroid Adjust kernel execution time: 126.537407 ms
+(3) Drift Calculation kernel execution time: 0.126144 ms
+(4) Group Max Drifts kernel execution time: 0.171872 ms
+(5) Global Filter kernel execution time: 4.376864 ms
+(5) Iteration 29 Global Filter to Local Filter: 498878
+(6) Early Skip Ratio Marking kernel execution time: 20.942272 ms
+(7) Calculation Skip Ratio execution time: 0.068832 ms
+Current iteration Skip Ratio = 0.31836
+(6) Local Filter Marking kernel execution time: 55.512321 ms
+(8) CPU-GPU Data Point Partition kernel execution time: 12.127584 ms
+(9-3-2) CPU Threads = 259456 GPU Threads = 239422 Thread ratio = 0.92
+(9-3-2) CPU calculation = 0  GPU calculation = 0 
+(9-3-3) Device to Host Data Transfer Time: 0.388160 ms
+(9-3-4) RWD kernel execution time: 896.857666 ms
+(9-3-4) kernel start ~ sync start: 1151.525146 ms
+(9-3-5) Host To Device Data Transfer Time: 0.130432 ms
+(9-3-6) Iteration 29 Total Reassignments (CPU + GPU): 4771
+prev_skip_ratio = 0.318, current_skip_ratio = 0.318 
+Iteration 29: 4771 Reassignments
+Yinyang K-Means total execution time: 67717.437500 ms
+calculating the average distance...
+return kmcudaSuccess

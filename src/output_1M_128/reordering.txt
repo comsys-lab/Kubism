@@ -1,0 +1,195 @@
+GPU #0 memory: used 9496506880 bytes (29.6%), free 22576688640 bytes, total 32073195520 bytes
+
+
+running Lloyd until reassignments drop below 110000
+Iteration 1: 1000000 Reassignments
+Iteration 2: 459021 Reassignments
+Iteration 3: 145582 Reassignments
+Iteration 4: 100975 Reassignments
+Iteration 1: 1024 Reassignments
+Iteration 2: 5 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 1983.559692 ms
+
+[Current Iteration = 4]
+(5) Iteration 4 Global Filter to Local Filter: 947612
+(6) Local Filter Marking kernel execution time: 106.838913 ms
+(9-1) (GPU) Reordering kernel execution time: 1932.763062 ms
+Iteration 4: 80386 Reassignments
+
+[Current Iteration = 5]
+(5) Iteration 5 Global Filter to Local Filter: 997034
+(6) Local Filter Marking kernel execution time: 395.327759 ms
+(9-1) (GPU) Reordering kernel execution time: 3168.615723 ms
+Iteration 5: 66975 Reassignments
+
+[Current Iteration = 6]
+(5) Iteration 6 Global Filter to Local Filter: 998903
+(6) Local Filter Marking kernel execution time: 699.454102 ms
+(9-1) (GPU) Reordering kernel execution time: 3271.236084 ms
+Iteration 6: 57329 Reassignments
+
+[Current Iteration = 7]
+(5) Iteration 7 Global Filter to Local Filter: 998973
+(6) Local Filter Marking kernel execution time: 708.638489 ms
+(9-1) (GPU) Reordering kernel execution time: 3294.267578 ms
+Iteration 7: 49680 Reassignments
+
+[Current Iteration = 8]
+(5) Iteration 8 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 414.857635 ms
+(9-1) (GPU) Reordering kernel execution time: 3291.909424 ms
+Iteration 8: 43827 Reassignments
+
+[Current Iteration = 9]
+(5) Iteration 9 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 259.029877 ms
+(9-1) (GPU) Reordering kernel execution time: 3289.220215 ms
+Iteration 9: 38838 Reassignments
+
+[Current Iteration = 10]
+(5) Iteration 10 Global Filter to Local Filter: 998976
+(6) Local Filter Marking kernel execution time: 252.070145 ms
+(9-1) (GPU) Reordering kernel execution time: 3293.556641 ms
+Iteration 10: 35472 Reassignments
+
+[Current Iteration = 11]
+(5) Iteration 11 Global Filter to Local Filter: 998978
+(6) Local Filter Marking kernel execution time: 247.082108 ms
+(9-1) (GPU) Reordering kernel execution time: 3291.945557 ms
+Iteration 11: 31859 Reassignments
+
+[Current Iteration = 12]
+(5) Iteration 12 Global Filter to Local Filter: 998979
+(6) Local Filter Marking kernel execution time: 268.934875 ms
+(9-1) (GPU) Reordering kernel execution time: 3293.225342 ms
+Iteration 12: 29033 Reassignments
+
+[Current Iteration = 13]
+(5) Iteration 13 Global Filter to Local Filter: 998982
+(6) Local Filter Marking kernel execution time: 265.801270 ms
+(9-1) (GPU) Reordering kernel execution time: 3293.091064 ms
+Iteration 13: 26735 Reassignments
+
+[Current Iteration = 14]
+(5) Iteration 14 Global Filter to Local Filter: 998997
+(6) Local Filter Marking kernel execution time: 279.648743 ms
+(9-1) (GPU) Reordering kernel execution time: 3296.194092 ms
+Iteration 14: 24820 Reassignments
+
+[Current Iteration = 15]
+(5) Iteration 15 Global Filter to Local Filter: 999045
+(6) Local Filter Marking kernel execution time: 284.144806 ms
+(9-1) (GPU) Reordering kernel execution time: 3301.432617 ms
+Iteration 15: 22651 Reassignments
+
+[Current Iteration = 16]
+(5) Iteration 16 Global Filter to Local Filter: 999194
+(6) Local Filter Marking kernel execution time: 290.267487 ms
+(9-1) (GPU) Reordering kernel execution time: 3284.322266 ms
+Iteration 16: 21031 Reassignments
+
+[Current Iteration = 17]
+(5) Iteration 17 Global Filter to Local Filter: 999467
+(6) Local Filter Marking kernel execution time: 299.617432 ms
+(9-1) (GPU) Reordering kernel execution time: 3291.042969 ms
+Iteration 17: 19862 Reassignments
+
+[Current Iteration = 18]
+(5) Iteration 18 Global Filter to Local Filter: 999781
+(6) Local Filter Marking kernel execution time: 301.392090 ms
+(9-1) (GPU) Reordering kernel execution time: 3286.318115 ms
+Iteration 18: 18411 Reassignments
+
+[Current Iteration = 19]
+(5) Iteration 19 Global Filter to Local Filter: 999962
+(6) Local Filter Marking kernel execution time: 307.429901 ms
+(9-1) (GPU) Reordering kernel execution time: 3263.608643 ms
+Iteration 19: 17245 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 1984.645874 ms
+
+[Current Iteration = 20]
+(5) Iteration 20 Global Filter to Local Filter: 476686
+(6) Local Filter Marking kernel execution time: 31.870880 ms
+(9-1) (GPU) Reordering kernel execution time: 428.680908 ms
+Iteration 20: 16182 Reassignments
+
+[Current Iteration = 21]
+(5) Iteration 21 Global Filter to Local Filter: 788331
+(6) Local Filter Marking kernel execution time: 60.774754 ms
+(9-1) (GPU) Reordering kernel execution time: 1239.979614 ms
+Iteration 21: 15155 Reassignments
+
+[Current Iteration = 22]
+(5) Iteration 22 Global Filter to Local Filter: 920853
+(6) Local Filter Marking kernel execution time: 109.068932 ms
+(9-1) (GPU) Reordering kernel execution time: 1950.114868 ms
+Iteration 22: 14190 Reassignments
+
+[Current Iteration = 23]
+(5) Iteration 23 Global Filter to Local Filter: 971886
+(6) Local Filter Marking kernel execution time: 179.893372 ms
+(9-1) (GPU) Reordering kernel execution time: 2516.959717 ms
+Iteration 23: 13404 Reassignments
+
+[Current Iteration = 24]
+(5) Iteration 24 Global Filter to Local Filter: 990020
+(6) Local Filter Marking kernel execution time: 278.396851 ms
+(9-1) (GPU) Reordering kernel execution time: 2958.630615 ms
+Iteration 24: 12744 Reassignments
+
+[Current Iteration = 25]
+(5) Iteration 25 Global Filter to Local Filter: 995980
+(6) Local Filter Marking kernel execution time: 397.866272 ms
+(9-1) (GPU) Reordering kernel execution time: 3170.393555 ms
+Iteration 25: 12146 Reassignments
+
+[Current Iteration = 26]
+(5) Iteration 26 Global Filter to Local Filter: 998070
+(6) Local Filter Marking kernel execution time: 521.990051 ms
+(9-1) (GPU) Reordering kernel execution time: 3253.251221 ms
+Iteration 26: 11583 Reassignments
+
+[Current Iteration = 27]
+(5) Iteration 27 Global Filter to Local Filter: 998733
+(6) Local Filter Marking kernel execution time: 636.559509 ms
+(9-1) (GPU) Reordering kernel execution time: 3273.454346 ms
+Iteration 27: 11077 Reassignments
+
+[Current Iteration = 28]
+(5) Iteration 28 Global Filter to Local Filter: 998917
+(6) Local Filter Marking kernel execution time: 717.924133 ms
+(9-1) (GPU) Reordering kernel execution time: 3283.570801 ms
+Iteration 28: 10585 Reassignments
+
+[Current Iteration = 29]
+(5) Iteration 29 Global Filter to Local Filter: 998954
+(6) Local Filter Marking kernel execution time: 757.864136 ms
+(9-1) (GPU) Reordering kernel execution time: 3290.928955 ms
+Iteration 29: 10041 Reassignments
+
+[Current Iteration = 30]
+(5) Iteration 30 Global Filter to Local Filter: 998969
+(6) Local Filter Marking kernel execution time: 743.713074 ms
+(9-1) (GPU) Reordering kernel execution time: 3291.902100 ms
+Iteration 30: 9607 Reassignments
+
+[Current Iteration = 31]
+(5) Iteration 31 Global Filter to Local Filter: 998975
+(6) Local Filter Marking kernel execution time: 673.796814 ms
+(9-1) (GPU) Reordering kernel execution time: 3287.503174 ms
+Iteration 31: 9254 Reassignments
+
+[Current Iteration = 32]
+(5) Iteration 32 Global Filter to Local Filter: 998975
+(6) Local Filter Marking kernel execution time: 578.274902 ms
+(9-1) (GPU) Reordering kernel execution time: 3290.030762 ms
+Iteration 32: 8734 Reassignments
+Yinyang K-Means total execution time: 151926.203125 ms
+calculating the average distance...
+return kmcudaSuccess

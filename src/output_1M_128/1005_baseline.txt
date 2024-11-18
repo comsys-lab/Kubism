@@ -1,0 +1,31 @@
+==PROF== Connected to process 828506 (/home/du6293/kmcuda/src/random)
+GPU #0 memory: used 10375418112 bytes (32.3%), free 21697785600 bytes, total 32073203712 bytes
+
+
+running Lloyd until reassignments drop below 110000
+Iteration 1: 1000000 Reassignments
+Iteration 2: 459021 Reassignments
+Iteration 3: 145582 Reassignments
+Iteration 4: 100975 Reassignments
+Iteration 1: 1024 Reassignments
+Iteration 2: 5 Reassignments
+
+Refreshing Yinyang Bounds, Call Bound Initialization Kernel
+
+(1) Initialization kernel execution time: 1992.372925 ms
+
+[Current Iteration = 4]
+(5) Iteration 4 Global Filter to Local Filter: 947612
+==PROF== Profiling "kmeans_yy_local_filter2_0_0": 0%....50%....100% - 35 passes
+(6) Local Filter Baseline kernel execution time: 348175.468750 ms
+Iteration 4: 80383 Reassignments
+
+[Current Iteration = 5]
+==PROF== Profiling "kmeans_yy_local_filter2_0_0": (5) Iteration 5 Global Filter to Local Filter: 997035
+0%.==PROF== Received signal
+==PROF== Trying to shutdown target application
+ - 2 passes
+==ERROR== Failed to profile kernel "kmeans_yy_local_filter2_0_0" in process 828506
+==PROF== Trying to shutdown target application
+==ERROR== An error occurred while trying to profile.
+==PROF== Report: /home/du6293/kmcuda/src/random.ncu-rep
