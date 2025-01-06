@@ -1,8 +1,0 @@
-Local_Filter_1_1, Local_Filter_1 등
-
-1_1: Skip ratio 계산
-
-1: Warp balancing에 필요한 배열 생성
-2_3: Warp balancing으로 거리 계산
-
-3: Warp balancing 안 할 때 거리 계산
