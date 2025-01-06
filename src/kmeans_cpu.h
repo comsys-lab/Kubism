@@ -1,9 +1,15 @@
+/********************************************
+*
+*Kubism - CPU Function
+*Implemented by: Seondeok Kim
+*
+********************************************/
+
 #ifndef KMEANS_CPU_H
 #define KMEANS_CPU_H
 
 #include <cstdint>
 #include <atomic>
-//#include "metric_abstraction.h"
 
 
 
@@ -18,8 +24,6 @@ float distance_t (
 
 template <typename F>
 void local_filter_cpu1(
-    //const uint32_t offset, 
-    //const uint32_t length,
     const uint32_t samples_size,
     const uint32_t clusters_size,
     const uint16_t features_size,
@@ -33,27 +37,20 @@ void local_filter_cpu1(
     float *bounds,
     float *second_min_dists,
     uint32_t *mark_cpu_number,
-    //std::atomic<uint32_t>& changed_number_cpu
     uint32_t& changed_number_cpu,
-   // uint32_t *calculate_centroid_cpu
     int32_t *mark_threads,
     uint16_t *calculate_data_point,
     uint32_t *partition_threshold
-   // uint32_t *passed,
-   // uint32_t global_to_local
 );
 
 
 template <typename F>
 void local_filter_cpu2(
-    //const uint32_t offset, 
-    //const uint32_t length,
     const uint32_t samples_size,
     const uint32_t clusters_size,
     const uint16_t features_size,
     const uint32_t yy_groups_size, 
     const float *samples,
-    //udevptrs<float>&samples,
     const uint32_t *mark_cpu, 
     const float *centroids,
     const uint32_t *groups, 
@@ -62,11 +59,7 @@ void local_filter_cpu2(
     float *bounds,
     float *second_min_dists,
     uint32_t *mark_cpu_number,
-    //std::atomic<uint32_t>& changed_number_cpu
     uint32_t& changed_number_cpu
-   // uint32_t *calculate_centroid_cpu
-    
-
 );
 
 
