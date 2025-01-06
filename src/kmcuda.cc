@@ -416,11 +416,7 @@ KMCUDAResult kmeans_cuda(
     uint32_t clusters_size, uint32_t seed, uint32_t device, int32_t device_ptrs,
     int32_t fp16x2, int32_t verbosity, const float *samples, float *centroids,
     uint32_t *assignments, float *average_distance) {
-  // DEBUG("arguments: %d %p %.3f %.2f %d %" PRIu32 " %" PRIu16 " %" PRIu32 " %"
-  //       PRIu32 " %" PRIu32 " %d %" PRIi32 " %p %p %p %p \n", init, init_params,
-  //       tolerance, yinyang_t, metric, samples_size, features_size, clusters_size,
-  //       seed, device, fp16x2, verbosity, samples, centroids, assignments,
-  //       average_distance);
+
   RETERR(check_kmeans_args(
       tolerance, yinyang_t, samples_size, features_size, clusters_size,
       device, fp16x2, verbosity, samples, centroids, assignments));
@@ -458,33 +454,18 @@ KMCUDAResult kmeans_cuda(
   CUMALLOC(device_ccounts, clusters_size);
 
   udevptrs<uint32_t> device_assignments_yy, device_passed_yy;
-  //udevptrs<int16_t> device_mark_threads_yy;
-  //udevptrs<uint32_t> device_calculate_data_point_yy;
-  //udevptrs<uint32_t> device_calculate_centroid_yy;
-  //udevptrs<uint32_t> device_mark_cpu_yy;
-  //udevptrs<uint32_t> device_mark_gpu_yy;
+
 
   udevptrs<float> device_bounds_yy;
   udevptrs<float> device_drifts_yy, device_centroids_yy;
   if (yy_groups_size >= 1) {
     CUMALLOC(device_assignments_yy, clusters_size);
     uint32_t max_length = max_distribute_length(samples_size, features_size * sizeof(float), devs);
-    //printf("max_length = %u\n", max_length);  // 1M
     size_t yyb_size = static_cast<size_t>(max_length) * (yy_groups_size + 1);
-    //printf("yyb_size = %lu\n", yyb_size);
-    //CUMALLOC(device_second_min_dists_yy, static_cast<size_t>(samples_size) * sizeof(float));
-    //CUMALLOC(device_mark_threads_yy,  static_cast<size_t>(samples_size) *  static_cast<size_t>(clusters_size) * sizeof(int16_t) );
-    //CUMALLOC(device_calculate_data_point_yy,  static_cast<size_t>(samples_size) * sizeof(uint32_t));  // data point index calculation
-    //CUMALLOC(device_calculate_centroid_yy, static_cast<size_t>(clusters_size) * sizeof(uint32_t)); // centroid index calculation
-    //CUMALLOC(device_mark_cpu_yy, static_cast<size_t>(samples_size) * sizeof(uint32_t));
-    //CUMALLOC(device_mark_gpu_yy, static_cast<size_t>(samples_size) * sizeof(uint32_t));
     CUMALLOC(device_bounds_yy, yyb_size);
-
     CUMALLOC(device_drifts_yy, centroids_size + clusters_size); // drift : 1024 * 128 + 1024 * 1
-    //printf("centroids_size + clusters_size = %lu\n", (centroids_size + clusters_size)); // 32096
     max_length = std::max(max_length, clusters_size + yy_groups_size);  // 1024 + 102
     CUMALLOC(device_passed_yy, max_length); // passed : 1024 + 102 
-    //printf("max_length = %u\n", max_length);
     
     
     size_t yyc_size = yy_groups_size * features_size; // 102 * 128 = 13056
@@ -520,7 +501,6 @@ KMCUDAResult kmeans_cuda(
       &device_centroids),
          DEBUG("kmeans_init_centroids failed: %s\n", CUERRSTR()));
   //---------------------------------------------------------------------------------------------------------------------------------
-  // CUDA event create
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
@@ -535,15 +515,9 @@ KMCUDAResult kmeans_cuda(
       &device_assignments, 
       &device_assignments_yy,
       &device_centroids_yy, 
-     // &device_bounds_yy, 
       &device_drifts_yy, &device_passed_yy
       ),DEBUG("kmeans_cuda_yy failed: %s\n", CUERRSTR()));
-    //&device_mark_threads_yy, &device_calculate_data_point_yy, &device_calculate_centroid_yy,
-    //&device_mark_cpu_yy, &device_mark_gpu_yy
 
-
-
-  // kmeans_yy_cuda 종료 시간 기록 및 계산
   cudaEventRecord(stop);
   cudaEventSynchronize(stop);
   float milliseconds = 0;
