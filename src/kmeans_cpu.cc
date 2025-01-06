@@ -23,9 +23,8 @@ inline float distance_t(
     uint32_t v1_size,
     uint16_t features_size,
     uint32_t v1_index) {
-
+    
     float dist = 0.0f;
-
     for (uint16_t f = 0; f < features_size; f++) {
         float d = v1[v1_size * f + v1_index] - v2[f];
         dist += d * d;
@@ -49,14 +48,10 @@ void local_filter_cpu1(
     float *bounds,
     float *second_min_dists,
     uint32_t *mark_cpu_number,
-    //std::atomic<uint32_t>& changed_number_cpu
     uint32_t& changed_number_cpu,
-   // uint32_t *calculate_centroid_cpu
     int32_t *mark_threads,
     uint16_t *calculate_data_point,
     uint32_t *partition_threshold
-    //int32_t *passed,
-    //uint32_t global_to_local
     ) {
 
     omp_set_num_threads(omp_get_max_threads());
