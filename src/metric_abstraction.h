@@ -74,24 +74,8 @@ struct METRIC<kmcudaDistanceMetricL2, F> {
     return _sqrt(_float(_fin(dist)));
   }
 
-// row-major
-// // v1: sample, v2: shared_centroids, v1_size = 10000, v1_index:current thread index ~ current thread's feature (offfset = 0) 
-//  FPATTR static float distance_t(const F *__restrict__ v1, const F *__restrict__ v2,
-//                                  uint64_t v1_size, uint64_t v1_index) {
-//     // Kahan summation with inverted c
-//     F dist = _const<F>(0), corr = _const<F>(0);
-//     #pragma unroll 4
-//     for (uint64_t f = 0; f < d_features_size; f++) {
-//       F d = _sub(v1[v1_size * f + v1_index], v2[f]);
-//       F y = _fma(corr, d, d);
-//       F t = _add(dist, y);
-//       corr = _sub(y, _sub(t, dist));
-//       dist = t;
-//     }
-//     return _sqrt(_float(_fin(dist)));
-//   }
 
-// v1: sample, v2: shared_centroids, v1_size = 1000000, v1_index:current thread index ~ current thread's feature (offfset = 0) 
+
  FPATTR static float distance_t(const F *__restrict__ v1, const F *__restrict__ v2,
                                  uint64_t v1_size, uint64_t v1_index) {
     // Kahan summation with inverted c
@@ -106,27 +90,6 @@ struct METRIC<kmcudaDistanceMetricL2, F> {
     }
     return _sqrt(_float(_fin(dist)));
   }
-
-
-//column-mojor
-// template <typename T>
-// FPATTR static float distance_t(const T *__restrict__ v1, const T *__restrict__ v2, uint64_t v1_size, uint64_t v1_index) {
-//     T dist = _const<T>(0), corr = _const<T>(0);
-//     #pragma unroll 4
-//     for (uint64_t f = 0; f < d_features_size; f++) {
-//         T d = _sub(v1[f * d_samples_size + v1_index], v2[f]);
-//         T y = _fma(corr, d, d);
-//         T t = _add(dist, y);
-//         corr = _sub(y, _sub(t, dist));
-//         dist = t;
-//     }
-//     return _sqrt(_float(_fin(dist)));
-// }
-
-
-
-
-
 
 
 
