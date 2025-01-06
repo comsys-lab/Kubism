@@ -60,11 +60,9 @@ void local_filter_cpu1(
     ) {
 
     omp_set_num_threads(omp_get_max_threads());
-//-------------------------------------------------------------------------------------------------------
     changed_number_cpu = 0 ;
     
     #pragma omp parallel for
-    
     for (uint32_t i = 0; i < *mark_cpu_number; i++) {
         uint32_t sample = mark_cpu[i];
         float upper_bound = bounds[sample];
@@ -85,15 +83,12 @@ void local_filter_cpu1(
                         mask = new_mask;
                         break;
                     }
-
                 }
             }
 
             while (mask != 0) {
                 int first_bit_pos = __builtin_ffs(mask) - 1;  
                 uint32_t c = i * 32 + first_bit_pos; 
-
-                
                 float dist = 0;
                 for (uint16_t f = 0; f < features_size; f++) {
                     float d = samples[samples_size * f + sample] - centroids[c * features_size + f];
