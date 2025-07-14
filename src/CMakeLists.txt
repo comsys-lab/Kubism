@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
-project(KMCUDA)
+project(Kubism)
 
 set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
 
-# OpenMP를 찾고 필요한 경우에 추가합니다.
-find_package(OpenMP REQUIRED)
+# Find OpenMP and add it if requiredfind_package(OpenMP REQUIRED)
 
 if (APPLE AND NOT CUDA_HOST_COMPILER)
   # https://gitlab.kitware.com/cmake/cmake/issues/13674
@@ -46,10 +45,10 @@ if (NOT DEFINED CUDA_ARCH)
   set(CUDA_ARCH "87")
 endif()
 
-# 일반 C++ 플래그에 OpenMP 플래그 추가
+# Add OpenMP flags to general C++ compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall -Werror -DCUDA_ARCH=${CUDA_ARCH} -std=c++11 ${OpenMP_CXX_FLAGS}")
 
-# CUDA 소스 파일을 컴파일할 때 사용할 플래그
+# Flags to use when compiling CUDA source files
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch sm_${CUDA_ARCH} -Xptxas=-v -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -lineinfo")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -87,8 +86,8 @@ if (APPLE)
   set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS_BACKUP}")
 endif()
 
-# OpenMP 라이브러리를 KMCUDA 타겟에 링크합니다.
-# CUDA와 OpenMP를 같이 사용할 때는 OpenMP 라이브러리만 g++ 또는 clang++에 링크합니다.
+# Link the OpenMP library to the KMCUDA target.
+# When using both CUDA and OpenMP, link only the OpenMP library with g++ or clang++.
 target_link_libraries(KMCUDA ${CUDA_curand_LIBRARY} OpenMP::OpenMP_CXX)
 
 if (PYTHONLIBS_FOUND)
