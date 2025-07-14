@@ -29,9 +29,7 @@
 #include <unistd.h>
 
 
-
 //#define SAMPLES_SIZE 1000000
-
 
 #define BS_KMPP 1024
 #define BS_AFKMC2_Q 512
@@ -64,9 +62,9 @@ float prev_execution_time;
 float prev_skip_ratio;
 uint32_t prev_global_to_local;
 
-int8_t flag ; // reordering + warp divergence + heterogeneous computing or reordering + heterogeneous computing
+int8_t flag ; // select (clustering reordering + warp balancing + HETD) or (clustering reordering + HETD)
 int8_t cnt1 ; // kmeans_yy_init
-int8_t cnt2 ; // skip theshold
+int8_t cnt2 ; // skip threshold
 
 
 
@@ -472,10 +470,8 @@ __global__ void kmeans_yy_init(
   if (sample >= length) {
     return;
   }
-  //uint32_t cnt = 0;
   for (uint32_t i = 0; i < d_yy_groups_size + 1; i++) {
     bounds[static_cast<uint64_t>(length) * i + sample] = FLT_MAX;
-    //cnt++;
   }
 
   uint32_t nearest = assignments[sample];
@@ -510,20 +506,16 @@ __global__ void kmeans_yy_init(
       float dist = METRIC<M, F>::distance_t(
           samples, shared_centroids + (c - gc) * d_features_size,
           d_samples_size, sample + offset);
-      //cnt++;
       if (c != nearest) {
         uint64_t gindex = static_cast<uint64_t>(length) * (1 + group) + sample;
         if (dist < bounds[gindex]) {
           bounds[gindex] = dist;
-          //cnt++;
         }
       } else {
         bounds[sample] = dist;
-        //cnt++;
       }
     }
   }
-  //printf("cnt = %u\n", cnt);
   
 }
 
@@ -581,7 +573,7 @@ __global__ void kmeans_yy_find_group_max_drifts(
 }
 
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_global_filter(
+__global__ void kmeans_yy_global_filter( // group filter
     const uint32_t offset, const uint32_t length, const F *__restrict__ samples,
     const F *__restrict__ centroids, const uint32_t *__restrict__ groups,
     const float *__restrict__ drifts, const uint32_t *__restrict__ assignments,
@@ -602,7 +594,7 @@ __global__ void kmeans_yy_global_filter(
   float min_lower_bound = FLT_MAX;
 
   /* Find Global lower bound */
-  for (uint32_t g = 0; g < d_yy_groups_size; g++) {
+  for (uint32_t g = 0; g < d_yy_groups_size; g++) { // filtering at centroid group level
     uint64_t gindex = static_cast<uint64_t>(length) * (1 + g) + sample;
     float lower_bound = bounds[gindex] - drifts[g];
     bounds[gindex] = lower_bound;
@@ -637,7 +629,7 @@ __global__ void kmeans_yy_global_filter(
 //------------------------------------------------------------------------------------------------------
 
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter1(
+__global__ void kubism_warp_balancing(
     const uint32_t offset, const uint32_t length, const F *__restrict__ samples,
     const uint32_t *__restrict__ passed, const F *__restrict__ centroids,
     const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
@@ -657,14 +649,15 @@ __global__ void kmeans_yy_local_filter1(
   float second_min_dist = FLT_MAX;
   uint32_t doffset = d_clusters_size * d_features_size; 
 
-  uint32_t bitmask_register = 0 ;
+  uint32_t bitmask_register = 0 ;  // form 32 bit metadata
 
-  for(uint32_t c = 0 ; c < d_clusters_size ; c++){   
-    int mask_index = (c) / 32;  
-    int bit_position = ( c) % 32;  
+  for(uint32_t c = 0 ; c < d_clusters_size ; c++){  
+    int mask_index = (c) / 32;     // metadata offset
+    int bit_position = ( c) % 32;  // bit inside metadata
 
+    /* Flush the 32-bit metadata once it is full or at the last centroid */
     if((c+1) % 32 == 0 || c == d_clusters_size - 1){
-      mark_threads[sample * 32 + (mask_index)] = bitmask_register;
+      mark_threads[sample * 32 + (mask_index)] = bitmask_register; 
       bitmask_register = 0;
     }
     
@@ -688,16 +681,8 @@ __global__ void kmeans_yy_local_filter1(
     if (second_min_dist < lower_bound) {
       continue;
     }
-    // int mask_index = (c) / 32;  
-    // int bit_position = ( c) % 32;  
-
+    // Set bit to 1 if current centroid needs distance computation
     bitmask_register |= (1 << bit_position);
-
-    // if((c+1) % 32 == 0 || c == d_clusters_size - 1){
-    //   mark_threads[sample * 32 + (mask_index)] = bitmask_register;
-    //   bitmask_register = 0;
-    // }
-    //mark_threads[sample * 32 + mask_index] |= (1 << bit_position);
 
   second_min_dists[sample] = second_min_dist; 
 
@@ -705,8 +690,8 @@ __global__ void kmeans_yy_local_filter1(
 }
  //----------------------------------------------------------------------------------------------
 
- template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter1_1(
+template <KMCUDADistanceMetric M, typename F>
+__global__ void kubism_clustering_reordering(
     const uint32_t offset, const uint32_t length, const F *__restrict__ samples,
     const uint32_t *__restrict__ passed, const F *__restrict__ centroids,
     const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
@@ -749,146 +734,18 @@ __global__ void kmeans_yy_local_filter1_1(
     if (second_min_dist < lower_bound) {
       continue;
     }
-    //mark_threads[index * d_samples_size + sample] = (c); //column-major & push
-    index++;
-    
-  
+    index++; // Count the number of per-sample distance calculations
   }
-  
-  //if(sample % 20 == 0){
-    //calculate_data_point[sample] = index; // using in CPU
-    atomicAdd(calculate_sum, index);
-  //}
+    atomicAdd(calculate_sum, index); // Accumulate per-sample count into total sum
 
   second_min_dists[sample] = second_min_dist; 
-  //atomicAdd(calculate_sum, index);
- }
- //-----------------------------------------------------------------------------------------------
 
-template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter2_0_0(
-    const uint32_t offset, const uint32_t length, const F *__restrict__ samples,
-    const uint32_t *__restrict__ passed, const F *__restrict__ centroids,
-    const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
-    uint32_t *__restrict__ assignments, float *__restrict__ bounds,
-    float *__restrict__ second_min_dists,
-    int32_t *__restrict__ mark_threads, uint16_t *__restrict__ calculate_data_point) {
-
-  volatile uint32_t sample = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (sample >= d_passed_number){
-    return;
-  }
-
-  sample = passed[sample];
-  // if (calculate_data_point[sample] == 0) {
-  //   return;
-  // }
-
-  float upper_bound = bounds[sample];
-  uint32_t cluster = assignments[sample];
-  uint32_t nearest = cluster;
-  float min_dist = upper_bound;
- //float second_min_dist = second_min_dists[sample];  
-  float second_min_dist = FLT_MAX;
-  uint32_t doffset = d_clusters_size * d_features_size;
-
-  // Shared memory allocation
-  // extern __shared__ float shared_centroids[];
-  // const uint32_t cstep = d_shmem_size / d_features_size; // 클러스터별로 나누어 로드
-  // const uint32_t size_each = cstep / min(blockDim.x, d_passed_number - blockIdx.x * blockDim.x) + 1;
-
-//  for (uint32_t gc = 0; gc < d_clusters_size; gc += cstep) {
-//     uint32_t coffset = gc * d_features_size;
-//     __syncthreads();
-//     for (uint32_t i = 0; i < size_each; i++) {
-//       uint32_t ci = threadIdx.x * size_each + i;
-//       uint32_t local_offset = ci * d_features_size;
-//       uint32_t global_offset = coffset + local_offset;
-//       if (global_offset < d_clusters_size * d_features_size && ci < cstep) {
-//         #pragma unroll 4
-//         for (int f = 0; f < d_features_size; f++) {
-//           shared_centroids[local_offset + f] = centroids[global_offset + f];
-//         }
-//       }
-//     }
-//     __syncthreads();
-
-    // Compute distances using shared memory
-  // for (uint32_t c = gc; c < gc + cstep && c < d_clusters_size; c++) {
-    for (uint32_t c = 0; c < d_clusters_size; c++) {
-      if (c == cluster) {
-        continue;
-      }
-
-      uint32_t group = groups[c];
-      if (group >= d_yy_groups_size) {
-        // this may happen if the centroid is insane (NaN)
-        continue;
-      }
-
-      float lower_bound = bounds[static_cast<uint64_t>(length) * (1 + group) + sample];
-      /* Local Filter Filtering 1 */
-      if (lower_bound >= upper_bound) {
-      //if(c >= 512){
-        if (lower_bound < second_min_dist) {
-          second_min_dist = lower_bound;
-        }
-        continue;
-      }
-      lower_bound += drifts[group] - drifts[doffset + c];
-      /* Local Filter Filtering 2 */
-      if (second_min_dist < lower_bound) {
-      //if(c >= 512){
-        continue;
-      }
-
-      // // Use shared memory for distance calculation
-      // float dist = 0;
-      // #pragma unroll 4
-      // for (uint16_t f = 0; f < d_features_size; ++f) {
-      //   float d = samples[d_samples_size * f + sample] - centroids[(c) * d_features_size + f];
-      //   dist += d * d;
-      // }
-      // float dist1 = sqrt(dist);
-
-      float dist = METRIC<M, F>::distance_t(
-          samples, centroids + (c ) * d_features_size,
-          d_samples_size, sample + offset);
-
-      if (dist < min_dist) {
-        second_min_dist = min_dist;
-        min_dist = dist;
-        nearest = c;
-      } else if (dist < second_min_dist) {
-        second_min_dist = dist;
-      }
-    }
- // }
-
-  uint32_t nearest_group = groups[nearest];
-  uint32_t previous_group = groups[cluster];
-  bounds[static_cast<uint64_t>(length) * (1 + nearest_group) + sample] = second_min_dist;
-
-  if (nearest_group != previous_group) {
-    uint64_t gindex = static_cast<uint64_t>(length) * (1 + previous_group) + sample;
-    float pb = bounds[gindex];
-    if (pb > upper_bound) {
-      bounds[gindex] = upper_bound;
-    }
-  }
-  
-  bounds[sample] = min_dist;
-
-  if (cluster != nearest) {
-    assignments[sample] = nearest;
-    atomicAggInc(&d_changed_number);
-  }
 }
 
+//-----------------------------------------------------------------------------------------------
 
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter2_0_1(
+__global__ void kmeans_yinyang_local_filter(
     const uint32_t offset, const uint32_t length, const float *__restrict__ samples,
     const uint32_t *__restrict__ passed, const float *__restrict__ centroids,
     const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
@@ -903,25 +760,16 @@ __global__ void kmeans_yy_local_filter2_0_1(
   }
 
   sample = passed[sample];
-  if (calculate_data_point[sample] == 0) {
-    return;
-  }
 
   float upper_bound = bounds[sample];
   uint32_t cluster = assignments[sample];
   uint32_t nearest = cluster;
   float min_dist = upper_bound;
-  float second_min_dist = second_min_dists[sample];  
-  
+  float second_min_dist = FLT_MAX;
   uint32_t doffset = d_clusters_size * d_features_size;
 
-  uint16_t num_centroids_to_process = calculate_data_point[sample];
-  if(num_centroids_to_process == 0){
-    return;
-  }
 
-  for (uint32_t c = 0 ; c < num_centroids_to_process ; c++) {
-    
+  for (uint32_t c = 0; c < d_clusters_size; c++) {
     if (c == cluster) {
       continue;
     }
@@ -935,7 +783,6 @@ __global__ void kmeans_yy_local_filter2_0_1(
     float lower_bound = bounds[static_cast<uint64_t>(length) * (1 + group) + sample];
     /* Local Filter Filtering 1 */
     if (lower_bound >= upper_bound) {
-    //if(c >= 512){
       if (lower_bound < second_min_dist) {
         second_min_dist = lower_bound;
       }
@@ -944,7 +791,6 @@ __global__ void kmeans_yy_local_filter2_0_1(
     lower_bound += drifts[group] - drifts[doffset + c];
     /* Local Filter Filtering 2 */
     if (second_min_dist < lower_bound) {
-    //if(c >= 512){
       continue;
     }
 
@@ -965,7 +811,6 @@ __global__ void kmeans_yy_local_filter2_0_1(
       second_min_dist = dist1;
     }
   }
-  
 
   uint32_t nearest_group = groups[nearest];
   uint32_t previous_group = groups[cluster];
@@ -987,329 +832,150 @@ __global__ void kmeans_yy_local_filter2_0_1(
   }
 }
 
-
-
-//-----------------------------------------------------------------------------------------------
-/* 1. reordering */
-template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter2_1(    
-    const uint32_t offset, const uint32_t length, const float *__restrict__ samples,
-    const uint32_t *__restrict__ passed, const float *__restrict__ centroids,
-    const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
-    uint32_t *__restrict__ assignments, float *__restrict__ bounds, 
-    //float *__restrict__ min_dists, uint32_t *__restrict__ nearests,
-    float *__restrict__ second_min_dists,
-    int32_t *__restrict__ mark_threads, uint16_t *__restrict__ calculate_data_point) {
-
-  volatile uint32_t sample = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (sample >= d_passed_number){
-    return;
-  }
-
-  sample = passed[sample];
-  if (calculate_data_point[sample] == 0) {
-    return;
-  }
-
-  float upper_bound = bounds[sample];
-  uint32_t cluster = assignments[sample];
-  uint32_t nearest = cluster;
-  float min_dist = upper_bound;
-  float second_min_dist = second_min_dists[sample];  
-  
-  uint32_t doffset = d_clusters_size * d_features_size;
-
-  for (uint32_t c = 0 ; c < d_clusters_size; c++) {
-      if (c == cluster) {
-        continue;
-      }
-      uint32_t group = groups[c];
-      if (group >= d_yy_groups_size) {
-        // this may happen if the centroid is insane (NaN)
-        continue;
-      }
-      float lower_bound = bounds[
-          static_cast<uint64_t>(length) * (1 + group) + sample];
-      if (lower_bound >= upper_bound) {
-        if (lower_bound < second_min_dist) {
-          second_min_dist = lower_bound;
-        }
-        continue;
-      }
-      lower_bound += drifts[group] - drifts[doffset + c];
-      if (second_min_dist < lower_bound) {
-        continue;
-      }
-      // float dist = METRIC<M, F>::distance_t(samples, centroids + (c) * d_features_size, d_samples_size, sample + offset);
-
-      float dist = 0;
-
-      #pragma unroll 4
-      for (uint16_t f = 0; f < d_features_size; ++f) {
-        float d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
-
-          dist += d * d;
-      }
-      float dist1 = sqrt(dist);
-
-      if (dist1 < min_dist) {
-        second_min_dist = min_dist;
-        min_dist = dist1;
-        nearest = c;
-      } else if (dist1 < second_min_dist) {
-        second_min_dist = dist1;
-      }
-    }
-  
-    uint32_t nearest_group = groups[nearest];
-    uint32_t previous_group = groups[cluster];
-    bounds[static_cast<uint64_t>(length) * (1 + nearest_group) + sample] = second_min_dist;
-    if (nearest_group != previous_group) {
-      uint64_t gindex = static_cast<uint64_t>(length) * (1 + previous_group) + sample;
-      float pb = bounds[gindex];
-      if (pb > upper_bound) {
-        bounds[gindex] = upper_bound;
-      }
-    }
-    bounds[sample] = min_dist;
-  
-    if (cluster != nearest) {
-      assignments[sample] = nearest;
-      atomicAggInc(&d_changed_number);
-    }
-}
-//-----------------------------------------------------------------------------------------------
-/* reordering + warp divergence */
-template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter2_2(
-    const uint32_t offset, const uint32_t length, const float *__restrict__ samples,
-    const uint32_t *__restrict__ passed, const float *__restrict__ centroids,
-    const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
-    uint32_t *__restrict__ assignments, float *__restrict__ bounds, 
-    //float *__restrict__ min_dists, uint32_t *__restrict__ nearests,
-    float *__restrict__ second_min_dists,
-    int32_t *__restrict__ mark_threads, uint16_t *__restrict__ calculate_data_point) {
-
-  volatile uint32_t sample = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (sample >= d_passed_number){
-    return;
-  }
-
-  sample = passed[sample];
-  if (calculate_data_point[sample] == 0) {
-    return;
-  }
-
-  float upper_bound = bounds[sample];
-  uint32_t cluster = assignments[sample];
-  uint32_t nearest = cluster;
-  float min_dist = upper_bound;
-  float second_min_dist = second_min_dists[sample];  
-
-  uint32_t valid_centroids = calculate_data_point[sample];
-  
-    
-  for (int16_t i = 0; i < valid_centroids ; i++) {
-    uint32_t c = mark_threads[i * d_samples_size + sample]; 
-
-    // float dist = METRIC<M, F>::distance_t(samples, centroids + (c) * d_features_size, d_samples_size, sample + offset);
-    float dist = 0;
-
-    #pragma unroll 4
-    for (uint16_t f = 0; f < d_features_size; ++f) {
-      float d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
-        dist += d * d;
-    }
-    float dist1 = sqrt(dist);
-
-    if (dist1 < min_dist) {
-      second_min_dist = min_dist;
-      min_dist = dist1;
-      nearest = c;
-    } else if (dist1 < second_min_dist) {
-      second_min_dist = dist1;
-    }
-  }
-  
-  uint32_t nearest_group = groups[nearest];
-  uint32_t previous_group = groups[cluster];
-  bounds[static_cast<uint64_t>(length) * (1 + nearest_group) + sample] = second_min_dist;
-  if (nearest_group != previous_group) {
-    uint64_t gindex = static_cast<uint64_t>(length) * (1 + previous_group) + sample;
-    float pb = bounds[gindex];
-    if (pb > upper_bound) {
-      bounds[gindex] = upper_bound;
-    }
-  }
-  bounds[sample] = min_dist;
- 
-  if (cluster != nearest) {
-    assignments[sample] = nearest;
-    atomicAggInc(&d_changed_number);
-  }
-}
-//--------------------------------------------------------------------------------------------------------------------------
-
 //--------------------------------------------------------------------------------------------------------------------------
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter_threshold(
+__global__ void kubism_skip_ratio(
     uint16_t *__restrict__ calculate_data_point, float *current_skip_ratio, uint32_t *partition_threshold, uint32_t *calculate_sum){
  
-  //uint32_t sum = 0;
- 
-  // for(uint32_t i = 0 ; i < d_samples_size ; i+=20){
-  //   sum += calculate_data_point[i]; // total calculation
-  // }
-  // /* Claculate Skip Ratio */
-  //float skip_ratio1 = 1.0f - (static_cast<float>(sum) / ((d_passed_number/20) * d_clusters_size)); // correct
-  // //printf("sum = %u\n", sum);
-  // //printf("calculate_sum = %u\n", *calculate_sum);
-  float skip_ratio1 = 1.0f - (static_cast<float>(*calculate_sum) / static_cast<float>(d_passed_number * d_clusters_size)); // correct
-  // //printf("skip_ratio1 = %0.5f\n", skip_ratio1);
-   *current_skip_ratio = skip_ratio1; // correct
+  float skip_ratio1 = 1.0f - (static_cast<float>(*calculate_sum) / static_cast<float>(d_passed_number * d_clusters_size)); 
+  *current_skip_ratio = skip_ratio1; 
 
 }
 
-
 //--------------------------------------------------------------------------------------------------------------------------
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter_partition(
+__global__ void kubism_CPU_GPU_task_partition(
     const uint32_t *__restrict__ passed,
     uint32_t *__restrict__ mark_cpu, uint32_t *__restrict__ mark_gpu, float *current_skip_ratio,
     uint32_t *partition_threshold, uint32_t *cpu_sum, uint32_t *gpu_sum, uint16_t *__restrict__ calculate_data_point,
     uint32_t *d_mark_cpu_number, uint32_t *d_mark_gpu_number, int8_t flag){
 
-    int32_t sample = blockIdx.x * blockDim.x + threadIdx.x; 
-    if (sample >= d_passed_number) {
-        return;  
+  int32_t sample = blockIdx.x * blockDim.x + threadIdx.x; 
+  if (sample >= d_passed_number) {
+      return;  
+  }
+
+  sample = passed[sample]; 
+
+  /* Data point distribution between CPU and GPU varies by dataset. */
+  if(flag == 3){ // clustering reordering + warp balancing + HETD
+    if(*current_skip_ratio < 1 && *current_skip_ratio >= 0.9){
+      if(sample <  280000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }else if(*current_skip_ratio < 0.9 && *current_skip_ratio >= 0.8){
+      if(sample < 280000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
     }
-
-    sample = passed[sample]; 
-
-    if(flag == 3){
-      //mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-      if(*current_skip_ratio < 1 && *current_skip_ratio >= 0.6){
-        if(sample < 1200000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+    else if(*current_skip_ratio < 0.8 && *current_skip_ratio >= 0.7){
+      if(sample < 240000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
         }
-      
-      } 
-      else if(*current_skip_ratio < 0.6 && *current_skip_ratio >= 0.2){
-        if(sample < 1000000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-        }
-      
-      } 
-
-       else {
-        if(sample < 800000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-        }
-      
-      } 
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
     }
-    else if(flag == 4){
-      if(*current_skip_ratio < 1 && *current_skip_ratio >= 0.8){
-        if(sample < 1200000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+    else if(*current_skip_ratio < 0.7 && *current_skip_ratio >= 0.6){
+      if(sample < 220000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
         }
-      
-      } 
-      else if(*current_skip_ratio < 0.8 && *current_skip_ratio >= 0.6){
-        if(sample < 700000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+    else if(*current_skip_ratio < 0.6 && *current_skip_ratio >= 0.5){
+      if(sample < 200000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
         }
-      
-      } 
-
-       else {
-        if(sample < 600000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-          }
-          else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }else if(*current_skip_ratio < 0.5 && *current_skip_ratio >= 0.4){
+      if(sample < 200000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
         }
-      
-      } 
-  
-      
-   }
-
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }      
+    else{
+        if(sample < 200000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+  }
     
-    
-  //---------------------------------------------------------------------------------
-
-      
-      //mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-      //mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-      //printf("partition_threshold = %u\n", *partition_threshold);
-  
-//---------------------------------------------------------------------------------
-
+  else if(flag == 4){ // clustering reordering + HETD
+    if(*current_skip_ratio < 1 && *current_skip_ratio >= 0.9){
+      if(sample <  220000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }else if(*current_skip_ratio < 0.9 && *current_skip_ratio >= 0.8){
+      if(sample < 200000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+    else if(*current_skip_ratio < 0.8 && *current_skip_ratio >= 0.7){
+      if(sample < 160000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+    else if(*current_skip_ratio < 0.7 && *current_skip_ratio >= 0.6){
+      if(sample < 140000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+    else if(*current_skip_ratio < 0.6 && *current_skip_ratio >= 0.5){
+      if(sample < 140000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }else if(*current_skip_ratio < 0.5 && *current_skip_ratio >= 0.4){
+      if(sample < 120000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }      
+    else{
+        if(sample < 120000){
+          mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
+        }
+        else{
+          mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
+      }
+    }
+  }
 }
+
 //--------------------------------------------------------------------------------------------------------------------------
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter_partition_2(
-    const uint32_t *__restrict__ passed,
-    uint32_t *__restrict__ mark_cpu, uint32_t *__restrict__ mark_gpu, float *current_skip_ratio,
-    uint32_t *partition_threshold, 
-    uint32_t *d_mark_cpu_number, uint32_t *d_mark_gpu_number, int8_t flag){
-
-    int32_t sample = blockIdx.x * blockDim.x + threadIdx.x; 
-    if (sample >= d_passed_number) {
-        return;  
-    }
-
-    sample = passed[sample]; 
-
-  
-    
-      //if ( *current_skip_ratio < 1 && *current_skip_ratio >= 0.95 ){
-        if(sample < 460000){
-            mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-            //atomicAdd(cpu_sum, calculate_data_point[sample]);
-        }else{
-            mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-            //atomicAdd(gpu_sum, calculate_data_point[sample]);
-        }
-      //}
-      
-      
-      
-
-    //}
-  //---------------------------------------------------------------------------------
-
-      
-      //mark_gpu[atomicAggInc(d_mark_gpu_number)] = sample;
-      //mark_cpu[atomicAggInc(d_mark_cpu_number)] = sample;
-      //printf("partition_threshold = %u\n", *partition_threshold);
-  
-//---------------------------------------------------------------------------------
-
-}
-//-------------------------------------------------------------------------------------------------------------------
-
-
-template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter2_3(
+__global__ void kubism_GPU_WB_HETD(
     const uint32_t offset, const uint32_t length, const float *__restrict__ samples,
     const uint32_t *__restrict__ mark_gpu, 
     const uint32_t *__restrict__ passed, 
@@ -1317,21 +983,14 @@ __global__ void kmeans_yy_local_filter2_3(
     const uint32_t *__restrict__ groups, const float *__restrict__ drifts,
     uint32_t *__restrict__ assignments, float *__restrict__ bounds, float *__restrict__ second_min_dists, uint32_t *d_mark_gpu_number, int32_t *__restrict__ mark_threads,
     const uint16_t *__restrict__ calculate_data_point,
-    uint32_t *partition_threshold
+    uint32_t *partition_threshold) {
 
-   ) {
   volatile uint32_t sample = blockIdx.x * blockDim.x + threadIdx.x;
   if (sample >= *d_mark_gpu_number) {
-  //if (sample >= d_passed_number) {
     return;
   }
-  // if((sample) < *partition_threshold){
-  //   return;
-  // }
 
   sample = mark_gpu[sample];
-
-  //sample = passed[sample];
 
   float upper_bound = bounds[sample];
   uint32_t cluster = assignments[sample];
@@ -1339,49 +998,51 @@ __global__ void kmeans_yy_local_filter2_3(
   float min_dist = upper_bound;
   float second_min_dist = second_min_dists[sample];
 
-
+  // Iterate over 32-bit blocks of centroid metadata
   for(uint32_t i = 0 ; i < 32 ; i++){
     int32_t mask = mark_threads[sample * 32 + i]; 
-
-        if(mask == 0 && i < 31){
-          uint32_t new_mask = 0;
-          for(uint32_t j = 1 ; j < (32-i); j++){ 
-              new_mask = mark_threads[sample * 32 + i + j];
-              if(new_mask != 0){
-                  i += j;
-                  mask = new_mask;
-                  break;
-              }
-          }
+    // Skip over zero metadata quickly
+    if(mask == 0 && i < 31){
+      uint32_t new_mask = 0;
+      for(uint32_t j = 1 ; j < (32-i); j++){ 
+        new_mask = mark_threads[sample * 32 + i + j];
+        if(new_mask != 0){
+            i += j;
+            mask = new_mask;
+            break;
         }
-        
-        while(mask!= 0){
-          int first_bit_pos = __ffs(mask) - 1; 
-          uint32_t c = i * 32 + (first_bit_pos); 
+      }
+    }
+    
+    // Process all active centroids in current bitmask
+    while(mask!= 0){
+      int first_bit_pos = __ffs(mask) - 1; 
+      uint32_t c = i * 32 + (first_bit_pos); 
 
-          double dist = 0;
-          #pragma unroll 4
-          for (uint16_t f = 0; f < d_features_size; ++f) {
-              double d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
-              dist += d * d;
-          }
-          float dist_1 = sqrt(dist);
+      double dist = 0;
+      #pragma unroll 4
+      for (uint16_t f = 0; f < d_features_size; ++f) {
+          double d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
+          dist += d * d;
+      }
+      float dist_1 = sqrt(dist); // Compute Euclidean distance
 
-          if (dist_1 < min_dist) {
-              second_min_dist = min_dist;
-              min_dist = dist_1;
-              nearest = c;
-          } else if (dist_1 < second_min_dist) {
-              second_min_dist = dist_1;
-          }
-          mask &= ~(1 << first_bit_pos);
-        }
+      // Update nearest and second nearest distances
+      if (dist_1 < min_dist) {
+          second_min_dist = min_dist;
+          min_dist = dist_1;
+          nearest = c;
+      } else if (dist_1 < second_min_dist) {
+          second_min_dist = dist_1;
+      }
+      mask &= ~(1 << first_bit_pos);  // Clear the processed bit
+    }
   }
-
-
+  // Update second min distance bound for the nearest group
   uint32_t nearest_group = groups[nearest];
   uint32_t previous_group = groups[cluster];
   bounds[static_cast<uint64_t>(length) * (1 + nearest_group) + sample] = second_min_dist;
+  // Update previous group bound if necessary
   if (nearest_group != previous_group) {
     uint64_t gindex = static_cast<uint64_t>(length) * (1 + previous_group) + sample;
     float pb = bounds[gindex];
@@ -1390,14 +1051,16 @@ __global__ void kmeans_yy_local_filter2_3(
     }
   }
   bounds[sample] = min_dist;
+  // Reassign if cluster changed
   if (cluster != nearest) {
     assignments[sample] = nearest;
     atomicAggInc(&d_changed_number);
   }
 }
+
 //--------------------------------------------------------------------------------------------------------------------------
 template <KMCUDADistanceMetric M, typename F>
-__global__ void kmeans_yy_local_filter3(
+__global__ void kubism_GPU_HETD(
     const uint32_t offset, const uint32_t length, const float *__restrict__ samples,
     const uint32_t *__restrict__ mark_gpu, 
     const uint32_t *__restrict__ passed, 
@@ -1410,15 +1073,10 @@ __global__ void kmeans_yy_local_filter3(
    volatile uint32_t sample = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (sample >= *d_mark_gpu_number) {
-  //if (sample >= d_passed_number){
     return;
   }
 
   sample = mark_gpu[sample];
-  //sample = passed[sample];
-  // if((sample) < *partition_threshold){
-  //   return;
-  // }
 
   float upper_bound = bounds[sample];
   uint32_t cluster = assignments[sample];
@@ -1430,42 +1088,40 @@ __global__ void kmeans_yy_local_filter3(
   for (uint32_t c = 0; c < d_clusters_size ; c++) {
     if (c == cluster) {
         continue;
+    }
+    uint32_t group = groups[c];
+    if (group >= d_yy_groups_size) {
+      // this may happen if the centroid is insane (NaN)
+      continue;
+    }
+    float lower_bound = bounds[static_cast<uint64_t>(length) * (1 + group) + sample];
+    if (lower_bound >= upper_bound) {
+      if (lower_bound < second_min_dist) {
+        second_min_dist = lower_bound;
       }
-      uint32_t group = groups[c];
-      if (group >= d_yy_groups_size) {
-        // this may happen if the centroid is insane (NaN)
-        continue;
-      }
-      float lower_bound = bounds[static_cast<uint64_t>(length) * (1 + group) + sample];
-      if (lower_bound >= upper_bound) {
-        if (lower_bound < second_min_dist) {
-          second_min_dist = lower_bound;
-        }
-        continue;
-      }
-      lower_bound += drifts[group] - drifts[doffset + c];
-      if (second_min_dist < lower_bound) {
-        continue;
-      }
+      continue;
+    }
+    lower_bound += drifts[group] - drifts[doffset + c];
+    if (second_min_dist < lower_bound) {
+      continue;
+    }
 
-      float dist = 0;
+    /* Distance Calculation */
+    float dist = 0;
+    #pragma unroll 4
+    for (uint16_t f = 0; f < d_features_size; ++f) {
+      float d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
+        dist += d * d;
+    }
+    float dist_1 = sqrt(dist);
 
-      #pragma unroll 4
-      for (uint16_t f = 0; f < d_features_size; ++f) {
-        /* 1 */
-        float d = samples[d_samples_size * f + sample] - centroids[c * d_features_size + f];
-
-          dist += d * d;
-      }
-      float dist_1 = sqrt(dist);
-
-      if (dist_1 < min_dist) {
-        second_min_dist = min_dist;
-        min_dist = dist_1;
-        nearest = c;
-      } else if (dist_1 < second_min_dist) {
-        second_min_dist = dist_1;
-      }
+    if (dist_1 < min_dist) {
+      second_min_dist = min_dist;
+      min_dist = dist_1;
+      nearest = c;
+    } else if (dist_1 < second_min_dist) {
+      second_min_dist = dist_1;
+    }
   }
 
   uint32_t nearest_group = groups[nearest];
@@ -1489,7 +1145,6 @@ __global__ void kmeans_yy_local_filter3(
 
 
 //--------------------------------------------------------------------------------------------------------------------------
-
 template <KMCUDADistanceMetric M, typename F>
 __global__ void kmeans_calc_average_distance(
     uint32_t offset, uint32_t length, const F *__restrict__ samples,
@@ -1511,73 +1166,47 @@ __global__ void kmeans_calc_average_distance(
 // Host functions //------------------------------------------------------------
 ////////////////////------------------------------------------------------------
 
-// 전력 측정 시작 함수
+// Start measure CPU and GPU Power Consumption Using NVIDIA Tegrastats with interavl 100ms
 void capture_power_metrics_in_interval_start(int iteration) {
     char start_cmd[256];
-    snprintf(start_cmd, sizeof(start_cmd), "sudo tegrastats --interval 100 --logfile /home/du6293/kmcuda/src/Power_2M_256/Kubism/tegra_log_%d.txt &", iteration);
+    snprintf(start_cmd, sizeof(start_cmd), "sudo sh -c 'tegrastats --interval 100 --logfile /home/du6293/kmcuda/src/Yolanda_power/WB+HETD/tegra_log_%d.txt' &", iteration);  // modify file path
     if (system(start_cmd) == -1) {  // tegrastats 시작
         printf("Failed to start tegrastats\n");
     }
 }
 
+// Stop measure CPU and GPU Power Consumption
 void capture_power_metrics_in_interval_end(int iteration) {
 
-    if (system("sudo pkill tegrastats") == -1) {  // tegrastats 종료
-        printf("Failed to stop tegrastats\n");
-        return;
-    }
+  if (system("sudo pkill tegrastats") == -1) {  // tegrastats 종료
+      printf("Failed to stop tegrastats\n");
+      return;
+  }
 
-    char log_file[256];
-    snprintf(log_file, sizeof(log_file), "/home/du6293/kmcuda/src/Power_2M_256/Kubism/tegra_log_%d.txt", iteration);
+  char log_file[256];
+  snprintf(log_file, sizeof(log_file), "/home/du6293/kmcuda/src/Yolanda_power/WB+HETD/tegra_log_%d.txt", iteration); // modify file path
 
-    // 로그 파일에 쓰기 권한 추가
-    char chmod_cmd[300];  // 버퍼 크기를 충분히 크게 설정
-    int chmod_length = snprintf(chmod_cmd, sizeof(chmod_cmd), "sudo chmod 666 %s", log_file);
-    
-    // 타입을 일치시키기 위해 sizeof는 size_t로 캐스팅하여 비교
-    if (chmod_length >= (int)sizeof(chmod_cmd)) {
-        printf("Error: chmod command exceeds buffer size.\n");
-        return;
-    }
+  // Grant write permission to the log file
+  char chmod_cmd[300]; // Allocate large enough buffer
+  int chmod_length = snprintf(chmod_cmd, sizeof(chmod_cmd), "sudo chmod 666 %s", log_file);
+  
+  // Ensure command string fits within buffer
+  if (chmod_length >= (int)sizeof(chmod_cmd)) {
+      printf("Error: chmod command exceeds buffer size.\n");
+      return;
+  }
 
-    if (system(chmod_cmd) == -1) {
-        printf("Failed to set write permission for log file: %s\n", log_file);
-        return;
-    }
+  if (system(chmod_cmd) == -1) {
+      printf("Failed to set write permission for log file: %s\n", log_file);
+      return;
+  }
 
-    // 로그 파일을 읽기 모드로 열기
-    FILE *file = fopen(log_file, "r");
-    if (file == NULL) {
-        printf("Failed to open log file: %s\n", log_file);
-        return;
-    }
-
-    // // 두 메트릭만 기록할 새로운 로그 파일을 쓰기 모드로 열기
-    // char real_log_file[256];
-    // snprintf(real_log_file, sizeof(real_log_file), "/home/du6293/kmcuda/src/Power_1M_256/tegra_real_log_%d.txt", iteration);
-
-    // FILE *new_file = fopen(real_log_file, "w");
-    // if (new_file == NULL) {
-    //     printf("Failed to open new log file for writing: %s\n", real_log_file);
-    //     fclose(file);
-    //     return;
-    // }
-
-    // char line[1024];
-    // while (fgets(line, sizeof(line), file) != NULL) {
-    //     char *gpu_pos = strstr(line, "VDD_GPU_SOC");
-    //     char *cpu_pos = strstr(line, "VDD_CPU_CV");
-
-    //     if (gpu_pos && cpu_pos) {
-    //         // 두 메트릭만 새로운 로그 파일에 기록
-    //         fprintf(new_file, "%.15s %.15s\n", gpu_pos, cpu_pos);
-    //     }
-    // }
-
-    // fclose(file);
-    // fclose(new_file);
-
-    // printf("Two metrics saved in: %s\n", real_log_file);
+  // Open the log file in read mode
+  FILE *file = fopen(log_file, "r");
+  if (file == NULL) {
+      printf("Failed to open log file: %s\n", log_file);
+      return;
+  }
 }
 
 
@@ -1640,7 +1269,6 @@ KMCUDAResult kmeans_cuda_setup(
 
     //DEBUG("-------------------------------------------------------------------------------------------------------------\n");
     CUCH(cudaMemcpyToSymbol(d_samples_size, &h_samples_size, sizeof(h_samples_size)), kmcudaMemoryCopyError);
-   // cudaHostAlloc((void**)&samples, h_samples_size, cudaHostAllocMapped);
     //DEBUG("GPU #%" PRIu32 " has %d samples_size\n", dev, h_samples_size);
     CUCH(cudaMemcpyToSymbol(d_features_size, &h_features_size, sizeof(h_features_size)), kmcudaMemoryCopyError);
     //DEBUG("GPU #%" PRIu32 " has %d features_size\n", dev, h_features_size);
@@ -1923,28 +1551,10 @@ KMCUDAResult kmeans_cuda_yy(
   //---------------------------------------------------------------------------------
   float* bounds_yy;
   uint32_t yyb_size =  h_samples_size * (h_yy_groups_size + 1) * sizeof(float);
-  //cudaMallocManaged(&bounds_yy, yyb_size);
   cudaHostAlloc((void**)&bounds_yy, yyb_size, cudaHostAllocDefault);
   
-  // uint32_t *assignment_yy;
-  // cudaMallocManaged(&assignment_yy, h_samples_size * sizeof(uint32_t));
   uint32_t* assignment_yy;
   cudaHostAlloc((void**)&assignment_yy, h_samples_size * sizeof(uint32_t), cudaHostAllocDefault);
-
-  //---------------------------------------------------------------------------------
-
-  // float* samples_yy;
-  // cudaHostAlloc((void**)&samples_yy, h_samples_size * h_features_size * sizeof(float), cudaHostAllocDefault);
-  // float* centroids_yyy;
-  // cudaHostAlloc((void**)&centroids_yyy, h_clusters_size * h_features_size * sizeof(float), cudaHostAllocDefault);
-  // uint32_t* assignments_yyy;
-  // cudaHostAlloc((void**)&assignments_yyy, h_clusters_size * h_features_size * sizeof(uint32_t), cudaHostAllocDefault);
-  // float* drifts_yyy;
-  //  cudaHostAlloc((void**)&drifts_yyy, h_clusters_size * (h_features_size + 1) * sizeof(float), cudaHostAllocDefault);
-
-
-
-
   //---------------------------------------------------------------------------------
 
   if (h_yy_groups_size == 0 || YINYANG_DRAFT_REASSIGNMENTS <= tolerance) {
@@ -2032,11 +1642,9 @@ KMCUDAResult kmeans_cuda_yy(
   uint32_t h_passed_number = 0; // initialization
 
   float     *h_samples        = (float*)malloc(h_samples_size * h_features_size * sizeof(float)); 
-  //float     *h_centroids      = (float*)malloc(h_clusters_size * h_features_size * sizeof(float));
 
   FOR_EACH_DEVI(
     cudaMemcpy(h_samples, (samples)[devi].get(), h_samples_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
-    //cudaMemcpy(h_centroids, (*centroids)[devi].get(), h_clusters_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
   );
 
   //------------------------------------------------------iter-------------------------------------------------------------
@@ -2057,7 +1665,7 @@ KMCUDAResult kmeans_cuda_yy(
       if (1.f - (h_passed_number + 0.f) / h_samples_size < YINYANG_REFRESH_EPSILON) {
         refresh = true;
         float cnt = 1.f - (h_passed_number + 0.f) / h_samples_size < YINYANG_REFRESH_EPSILON;
-        printf("start initialize! cnt = %f\n", cnt);
+        //printf("start initialize! cnt = %f\n", cnt);
        
       }
       h_passed_number = 0;
@@ -2078,7 +1686,7 @@ KMCUDAResult kmeans_cuda_yy(
         cudaEventCreate(&start1);
         cudaEventCreate(&stop1);
         cudaEventRecord(start1);      
-        flag = 3;/////////////////////////////////
+        flag = 3; // set your scheme
         cnt1 = 0;
         cnt2 = 0;
         skip_threshold = 0;
@@ -2089,7 +1697,6 @@ KMCUDAResult kmeans_cuda_yy(
               reinterpret_cast<const F*>((*centroids)[devi].get()),
               (*assignments)[devi].get() + offset,
               (*assignments_yy)[devi].get(), 
-              //(*bounds_yy)[devi].get()
               bounds_yy));
         cudaDeviceSynchronize();
         cudaEventRecord(stop1);
@@ -2135,7 +1742,6 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventElapsedTime(&milliseconds2, start2, stop2);
       printf("\n");
       printf("[Current Iteration = %d]\n", iter);
-      //printf("(2) Centroid Adjust kernel execution time: %f ms\n", milliseconds2);
 
       cudaEventDestroy(start2);
       cudaEventDestroy(stop2); 
@@ -2237,10 +1843,9 @@ KMCUDAResult kmeans_cuda_yy(
     FOR_EACH_DEV(
       CUCH(cudaMemcpyToSymbolAsync(d_passed_number, &h_passed_number, sizeof(h_passed_number)), kmcudaMemoryCopyError);  // host -> device
       );
-//--------------------------------------------------------------------------------yinyang 5 ~ 7-------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------yinyang 5-------------------------------------------------------------------------------
    
     FOR_EACH_DEVI(
-      //uint32_t h_distance_number = 0; // initialization
       uint32_t offset, length;
       std::tie(offset, length) = plans[devi];
       if (length == 0) {
@@ -2270,21 +1875,18 @@ KMCUDAResult kmeans_cuda_yy(
 
       float milliseconds5 = 0;
       cudaEventElapsedTime(&milliseconds5, start5, stop5);
-     // printf("(5) Global Filter kernel execution time: %f ms\n", milliseconds5);
 
       cudaEventDestroy(start5);
       cudaEventDestroy(stop5);
 
-      uint32_t global_to_local;
+      uint32_t global_to_local; // the number of data points which filtered at group filter
       CUCH(cudaMemcpyFromSymbol(&global_to_local, d_passed_number, sizeof(uint32_t)), kmcudaMemoryCopyError);
       printf("(5) Iteration %d Global Filter to Local Filter: %u\n", iter, global_to_local);     
-      //printf("h_samples_size = %u h_clusters_size = %u, h_features_size = %u\n", h_samples_size, h_clusters_size, h_features_size); 
 
-//--------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------Start Power Measure---------------------------------------------------------------------------------------------
       // std::cout << "Start capturing power metrics..." << std::endl;
       // capture_power_metrics_in_interval_start(iter);
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------Memory Allocation-------------------------------------------------------------------------
       int32_t *mark_threads_yy;
       cudaHostAlloc(&mark_threads_yy, ( h_samples_size) * (h_clusters_size) * sizeof(int32_t), cudaHostAllocMapped);
       cudaError_t err = cudaGetLastError();
@@ -2299,7 +1901,6 @@ KMCUDAResult kmeans_cuda_yy(
 
       memset(mark_threads_yy, 0, (h_samples_size) * static_cast<int32_t>(h_clusters_size) * sizeof(int32_t));
       memset(calculate_data_point_yy, 0, (h_samples_size) * sizeof(uint16_t));
-      //cudaMemset(d_calculate_centroid, 0, static_cast<uint32_t>(h_clusters_size) * sizeof(uint32_t));
       memset(second_min_dists_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(float));
 
       uint32_t *calculate_sum;
@@ -2314,8 +1915,7 @@ KMCUDAResult kmeans_cuda_yy(
       cudaHostAlloc((void**)&partition_threshold, sizeof(uint32_t), cudaHostAllocMapped);
       *partition_threshold = 0;
 
-      //cudaDeviceSynchronize();
-//------------------------------------------------------------------------------------------------------------------------------------- 
+//---------------------------------------------------------Baseline---------------------------------------------------------------- 
     if(flag == 0){
         cudaEvent_t start11, stop11;
         cudaEventCreate(&start11);
@@ -2323,15 +1923,13 @@ KMCUDAResult kmeans_cuda_yy(
         cudaEventRecord(start11);
 
         dim3 slgrid(upper(length, slblock.x), 1, 1);
-        KERNEL_SWITCH(kmeans_yy_local_filter2_0_0, <<<slgrid, slblock, shmem_sizes[devi]>>>(
-            offset, length, reinterpret_cast<const F*>(samples[devi].get()), (*passed_yy)[devi].get(),
-            reinterpret_cast<const F*>((*centroids)[devi].get()),
+        KERNEL_SWITCH(kmeans_yinyang_local_filter, <<<slgrid, slblock, shmem_sizes[devi]>>>(
+            offset, length, reinterpret_cast<const float*>(samples[devi].get()), (*passed_yy)[devi].get(),
+            reinterpret_cast<const float*>((*centroids)[devi].get()),
             (*assignments_yy)[devi].get(), 
             (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-            //drifts_yyy,
             (*assignments)[devi].get() + offset, 
             bounds_yy,
-            //(*bounds_yy)[devi].get(), 
             second_min_dists_yy,
             mark_threads_yy, calculate_data_point_yy
             ));
@@ -2345,8 +1943,8 @@ KMCUDAResult kmeans_cuda_yy(
     
         cudaEventDestroy(start11);
         cudaEventDestroy(stop11); 
-   }
-    //--------------------------------------------------------------------------------------------------------------------------------------
+    }
+    //-----------------------------------------------Clustering Reordering----------------------------------------------------------------
     else{
       cudaEvent_t start6, stop6;
       cudaEventCreate(&start6);
@@ -2354,15 +1952,13 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventRecord(start6);
 
       dim3 slgrid(upper(length, slblock.x), 1, 1);
-      KERNEL_SWITCH(kmeans_yy_local_filter1_1, <<<slgrid, slblock, shmem_sizes[devi]>>>(
+      KERNEL_SWITCH(kubism_clustering_reordering, <<<slgrid, slblock, shmem_sizes[devi]>>>(
           offset, length, reinterpret_cast<const F*>(samples[devi].get()), (*passed_yy)[devi].get(),
           reinterpret_cast<const F*>((*centroids)[devi].get()),
           (*assignments_yy)[devi].get(), 
           (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-          //drifts_yyy,
           (*assignments)[devi].get() + offset, 
           bounds_yy,
-          //(*bounds_yy)[devi].get(), 
           second_min_dists_yy,
           mark_threads_yy, calculate_data_point_yy, calculate_sum));
       cudaDeviceSynchronize();
@@ -2371,19 +1967,17 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventSynchronize(stop6);
       float milliseconds6 = 0;
       cudaEventElapsedTime(&milliseconds6, start6, stop6);
-      printf("(6) Early Skip Ratio Marking kernel execution time: %f ms\n", milliseconds6);
+      printf("(6) Early Skip Ratio Marking kernel execution time(1_1): %f ms\n", milliseconds6);
 
       cudaEventDestroy(start6);
       cudaEventDestroy(stop6);
-//-----------------------------------------------------------------------------------------------------------     
+//------------------------------------------------Calculate Skip Ratio--------------------------------------------     
       cudaEvent_t start7, stop7;
       cudaEventCreate(&start7);
       cudaEventCreate(&stop7);
       cudaEventRecord(start7);
 
-      //int threads_per_block = 512;  // 한 블록당 최대 1024개의 스레드
-      //int blocks = (h_samples_size + threads_per_block - 1) / threads_per_block;  // 필요한 블록 수 계산
-      KERNEL_SWITCH(kmeans_yy_local_filter_threshold, <<<1,h_clusters_size>>>(
+      KERNEL_SWITCH(kubism_skip_ratio, <<<1,h_clusters_size>>>(
         calculate_data_point_yy,
         current_skip_ratio, partition_threshold, calculate_sum));
       cudaDeviceSynchronize();
@@ -2396,20 +1990,18 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventDestroy(start7);
       cudaEventDestroy(stop7);
       printf("Current iteration Skip Ratio = %0.5f\n", *current_skip_ratio);
- }
+    }
       
+    // Set Skip Ratio Threshold 
+    if(cnt1 == 1 ){
+      if(skip_threshold < *current_skip_ratio ) flag = 3;
+      else flag = 4; 
+    }
+    printf("flag = %u skip_threshold = %0.3f\n", flag, skip_threshold);
 
-      if(cnt1 == 1 ){
-        if(skip_threshold < *current_skip_ratio ) flag = 3;
-        else flag = 4;
-      }
-      printf("flag = %u skip_threshold = %0.3f\n", flag, skip_threshold);
-
+//----------------------------------------Warp Balancing + HETD-----------------------------------------------------
     if(flag == 3) {   
-
-//---------------------------------------------------------------------------------------------------------------
       float predict_execution_time = prev_execution_time * ((static_cast<float>(1)-prev_skip_ratio)) / ((static_cast<float>(1) - *current_skip_ratio));
-//----------------------------------------------------------------------------------------------------------------
 
       cudaEvent_t start6, stop6;
       cudaEventCreate(&start6);
@@ -2417,15 +2009,13 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventRecord(start6);
 
       dim3 slgrid(upper(length, slblock.x), 1, 1);
-      KERNEL_SWITCH(kmeans_yy_local_filter1, <<<slgrid, slblock, shmem_sizes[devi]>>>(
+      KERNEL_SWITCH(kubism_warp_balancing, <<<slgrid, slblock, shmem_sizes[devi]>>>(
           offset, length, reinterpret_cast<const F*>(samples[devi].get()), (*passed_yy)[devi].get(),
           reinterpret_cast<const F*>((*centroids)[devi].get()),
           (*assignments_yy)[devi].get(), 
           (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-          //drifts_yyy,
           (*assignments)[devi].get() + offset, 
           bounds_yy,
-          //(*bounds_yy)[devi].get(), 
           second_min_dists_yy,
           mark_threads_yy, calculate_data_point_yy));
       cudaDeviceSynchronize();
@@ -2447,7 +2037,7 @@ KMCUDAResult kmeans_cuda_yy(
       cudaHostAlloc((void**)&gpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
       *gpu_sum = 0;
 
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+//------------------------------------------------HETD (CPU & GPU Task Distribution)-------------------------------------------------------------------------------------------- 
       cudaEvent_t start8, stop8;
       cudaEventCreate(&start8);
       cudaEventCreate(&stop8);
@@ -2470,11 +2060,8 @@ KMCUDAResult kmeans_cuda_yy(
 
       memset(mark_cpu_number, 0, sizeof(uint32_t)); // Set to 0
       memset(mark_gpu_number, 0, sizeof(uint32_t)); // Set to 0
-
-      //cudaDeviceSynchronize();
-      //dim3 slgrid(upper(length, slblock.x), 1, 1);
       
-      KERNEL_SWITCH(kmeans_yy_local_filter_partition, <<<slgrid, slblock>>>((*passed_yy)[devi].get(), 
+      KERNEL_SWITCH(kubism_CPU_GPU_task_partition, <<<slgrid, slblock>>>((*passed_yy)[devi].get(), 
                                                                             mark_cpu_yy, mark_gpu_yy, current_skip_ratio,
                                                                             partition_threshold, cpu_sum, gpu_sum, calculate_data_point_yy,
                                                                             mark_cpu_number, mark_gpu_number, flag
@@ -2487,37 +2074,28 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventElapsedTime(&milliseconds8, start8, stop8);
       
       printf("(8) CPU-GPU Data Point Partition kernel execution time: %f ms\n", milliseconds8);
-      //printf("partition_threshold = %u\n", *partition_threshold);
       cudaEventDestroy(start8);
       cudaEventDestroy(stop8); 
 
 
-      
-      //printf("(9-3-1) Partition threshold = %u\n", *partition_threshold);
       printf("(9-3-2) CPU Threads = %u GPU Threads = %u Thread ratio = %.2f\n", *mark_cpu_number, *mark_gpu_number, (static_cast<float>(*mark_gpu_number)/static_cast<float>(*mark_cpu_number)));
-      printf("(9-3-2) CPU calculation = %u  GPU calculation = %u \n", *cpu_sum, *gpu_sum);
 
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+//-------------------------------------------------------HETD (Device To Host)------------------------------------------------------------------------------------ 
       
       cudaEvent_t start_d2h, stop_d2h;
       cudaEventCreate(&start_d2h);
       cudaEventCreate(&stop_d2h);
       cudaEventRecord(start_d2h);
       
-      //float     *h_samples        = (float*)malloc(h_samples_size * h_features_size * sizeof(float)); 
       float     *h_centroids      = (float*)malloc(h_clusters_size * h_features_size * sizeof(float));
       uint32_t  *h_assignments_yy = (uint32_t*)malloc(h_clusters_size * sizeof(uint32_t));
       float     *h_drifts_yy      = (float*)malloc((h_clusters_size) * (h_features_size + 1) * sizeof(float));
       uint32_t  *h_passed_yy        = (uint32_t*)malloc(h_samples_size * sizeof(uint32_t));
       
-
       cudaMemcpy(assignment_yy, (*assignments)[devi].get(), h_samples_size * sizeof(uint32_t), cudaMemcpyDeviceToDevice);
-      //cudaMemcpy(h_samples, (samples)[devi].get(), h_samples_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
       cudaMemcpy(h_centroids, (*centroids)[devi].get(), h_clusters_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
       cudaMemcpy(h_assignments_yy, (*assignments_yy)[devi].get(), h_clusters_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
       cudaMemcpy(h_drifts_yy, (*drifts_yy)[devi].get(), (h_clusters_size) * (h_features_size + 1) * sizeof(float), cudaMemcpyDeviceToHost);
-      //cudaMemcpy(h_passed_yy, (*passed_yy)[devi].get(), (h_samples_size) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
 
       cudaEventRecord(stop_d2h);
@@ -2528,54 +2106,42 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventDestroy(start_d2h);
       cudaEventDestroy(stop_d2h);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------HETD (CPU GPU HETD parallel)---------------------------------------------------------------------------------
       cudaEvent_t kernel_start;
       cudaEvent_t kernel_stop;
       cudaEvent_t  sync_start;
-      //cudaEvent_t sync_stop;
+
       cudaEventCreate(&kernel_start);
       cudaEventCreate(&kernel_stop);
       cudaEventCreate(&sync_start);
-      // cudaEventCreate(&sync_stop);
 
-      // GPU 커널 시작 시간을 기록
       cudaEventRecord(kernel_start);
-      // GPU 커널 호출
-      //dim3 slgrid(upper(length, slblock.x), 1, 1);
-      KERNEL_SWITCH(kmeans_yy_local_filter2_3, <<<slgrid, slblock, shmem_sizes[devi]>>>(
+
+      KERNEL_SWITCH(kubism_GPU_WB_HETD, <<<slgrid, slblock, shmem_sizes[devi]>>>(
           offset, length,  
           reinterpret_cast<const float*>(samples[devi].get()), 
-          //samples_yy,
           mark_gpu_yy, (*passed_yy)[devi].get(),
           reinterpret_cast<const float*>((*centroids)[devi].get()),
-          //centroids_yyy,
           (*assignments_yy)[devi].get(), 
-          //assignments_yyy,
           (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-          //drifts_yyy,
           assignment_yy,
-          //(*assignments)[devi].get() + offset,
           bounds_yy,
-          //(*bounds_yy)[devi].get(),
           second_min_dists_yy, mark_gpu_number, 
           mark_threads_yy, calculate_data_point_yy,
           partition_threshold
-          //d_samples_row_major, d_centroids_col_major
           ));
-      //cudaDeviceSynchronize();
+
       cudaEventRecord(kernel_stop);
-      //cudaEventSynchronize(kernel_stop);
-     
+
       uint32_t h_changed_number_cpu = 0;
-      local_filter_cpu1<float>(h_samples_size, h_clusters_size, h_features_size, h_yy_groups_size,
+      // HETD (CPU HETD)
+      kubism_CPU_WB_HETD<float>(h_samples_size, h_clusters_size, h_features_size, h_yy_groups_size,
                               h_samples, mark_cpu_yy, h_centroids, h_assignments_yy, h_drifts_yy, 
                               assignment_yy, bounds_yy, second_min_dists_yy, 
                               mark_cpu_number, h_changed_number_cpu,
                               mark_threads_yy, calculate_data_point_yy, partition_threshold);
       cudaEventRecord(sync_start);
-      cudaDeviceSynchronize();///////////////////////////////////////////////////////////////////////////////////////////////////
-      //cudaEventRecord(sync_stop);
-      //cudaEventSynchronize(sync_stop);////////////////////////////////////
+      cudaDeviceSynchronize();
 
       float kernel_time = 0;
       cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop);
@@ -2585,14 +2151,11 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventElapsedTime(&sync_time1, kernel_start, sync_start);
       printf("(9-3-4) kernel start ~ sync start: %f ms\n", sync_time1);
 
-
-      // CUDA 이벤트 제거
       cudaEventDestroy(kernel_start);
       cudaEventDestroy(kernel_stop);
       cudaEventDestroy(sync_start);
-      //cudaEventDestroy(sync_stop);
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-/* H2D */     
+
+//---------------------------------------------------HETD (Host To Device)---------------------------------------------------------------------------------------  
       cudaEvent_t start_h2d, stop_h2d;
       cudaEventCreate(&start_h2d);
       cudaEventCreate(&stop_h2d);
@@ -2607,8 +2170,7 @@ KMCUDAResult kmeans_cuda_yy(
       float milliseconds_h2d = 0;
       cudaEventElapsedTime(&milliseconds_h2d, start_h2d, stop_h2d);
       printf("(9-3-5) Host To Device Data Transfer Time: %f ms\n", milliseconds_h2d);
-      //float total_time = milliseconds6 + milliseconds7 + milliseconds8 + milliseconds_d2h + sync_time1 + milliseconds_h2d;
-      //printf("(9-3-6) Total Time: %f ms\n", total_time);
+
       cudaEventDestroy(start_h2d);
       cudaEventDestroy(stop_h2d);
 
@@ -2624,25 +2186,9 @@ KMCUDAResult kmeans_cuda_yy(
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
       /* Current data to Prev data */
       prev_execution_time = sync_time1;
-      //printf("3)prev_execution_time = %0.4f\n", prev_execution_time);
-      prev_skip_ratio = *current_skip_ratio;
-     // prev_global_to_local = global_to_local;
       printf("prev_skip_ratio = %0.3f, current_skip_ratio = %0.3f \n", prev_skip_ratio, *current_skip_ratio);
-      
-
-      // if(cnt1 == 0) { // iter 4, 20 
-      //   skip_threshold = 0;
-      //   cnt1 = 1;
-      // }else{
-      //   if(cnt2 == 0){  // iter 5, 21
-      //     if(predict_execution_time < sync_time1){ 
-      //       //flag = 4;
-      //       skip_threshold = *current_skip_ratio;
-      //     }          
-      //     cnt2 = 1;
-      //   }
-
-      // }
+      prev_skip_ratio = *current_skip_ratio;
+    
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
       cudaFreeHost(cpu_sum);
       cudaFreeHost(gpu_sum);
@@ -2652,113 +2198,97 @@ KMCUDAResult kmeans_cuda_yy(
       cudaFreeHost(mark_cpu_number);
       cudaFreeHost(mark_gpu_number);
 
-      // free(h_samples);
       free(h_centroids);
       free(h_assignments_yy);
       free(h_drifts_yy);
       free(h_passed_yy);
 
-
-      if (cnt1 == 0){ // kmeans_yy_init 4, 20
+      /* Set Skip Ratio Threshold */
+      if (cnt1 == 0){ // Iteration with kmeans_yy_init 
         skip_threshold = 0;
         cnt1 = 1;
       }else{  // Not kmeans_yy_init
         if(cnt2 == 0){    // predict_exec_time
           if(predict_execution_time < sync_time1) {
-            //flag = 4;
+            flag = 4; // HETD
             skip_threshold = *current_skip_ratio;
           }
-          //else flag = 3;
-          cnt2 = 1;
+          else flag = 3; // WB + HETD
+          cnt2 = 1; 
         }
       }
-      
+
+//---------------------------------------------------------------------------------------------------------------------------------
     }  
-    else if (flag == 4 && h_features_size > 64){
+    else if (flag == 4){
 
+      uint32_t *cpu_sum;
+      cudaHostAlloc((void**)&cpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
+      *cpu_sum = 0;
 
-        uint32_t *cpu_sum;
-        cudaHostAlloc((void**)&cpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
-        *cpu_sum = 0;
+      uint32_t *gpu_sum;
+      cudaHostAlloc((void**)&gpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
+      *gpu_sum = 0;
 
-        uint32_t *gpu_sum;
-        cudaHostAlloc((void**)&gpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
-        *gpu_sum = 0;
-
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-        cudaEvent_t start8, stop8;
-        cudaEventCreate(&start8);
-        cudaEventCreate(&stop8);
-        cudaEventRecord(start8);
-
-        uint32_t *mark_cpu_yy;
-        cudaHostAlloc((void**)&mark_cpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
-
-        uint32_t *mark_gpu_yy;
-        cudaHostAlloc((void**)&mark_gpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
-  
-        memset(mark_cpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
-        memset(mark_gpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
-
-        uint32_t *mark_cpu_number;
-        cudaHostAlloc(&mark_cpu_number, sizeof(uint32_t), cudaHostAllocMapped);
-        
-        uint32_t *mark_gpu_number;
-        cudaHostAlloc(&mark_gpu_number, sizeof(uint32_t), cudaHostAllocMapped);
-
-        memset(mark_cpu_number, 0, sizeof(uint32_t)); // Set to 0
-        memset(mark_gpu_number, 0, sizeof(uint32_t)); // Set to 0   
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+      cudaEvent_t start8, stop8;
+      cudaEventCreate(&start8);
+      cudaEventCreate(&stop8);
+      cudaEventRecord(start8);
+
+      uint32_t *mark_cpu_yy;
+      cudaHostAlloc((void**)&mark_cpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
+
+      uint32_t *mark_gpu_yy;
+      cudaHostAlloc((void**)&mark_gpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
+
+      memset(mark_cpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
+      memset(mark_gpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
+
+      uint32_t *mark_cpu_number;
+      cudaHostAlloc(&mark_cpu_number, sizeof(uint32_t), cudaHostAllocMapped);
+      
+      uint32_t *mark_gpu_number;
+      cudaHostAlloc(&mark_gpu_number, sizeof(uint32_t), cudaHostAllocMapped);
+
+      memset(mark_cpu_number, 0, sizeof(uint32_t)); // Set to 0
+      memset(mark_gpu_number, 0, sizeof(uint32_t)); // Set to 0   
+//----------------------------------------------------HETD (CPU & GPU Task Distribution)------------------------------------------------------------------------------------- 
     
+      dim3 slgrid(upper(length, slblock.x), 1, 1);
+      KERNEL_SWITCH(kubism_CPU_GPU_task_partition, <<<slgrid, slblock>>>((*passed_yy)[devi].get(), 
+                                                                            mark_cpu_yy, mark_gpu_yy, current_skip_ratio,
+                                                                            partition_threshold, cpu_sum, gpu_sum, calculate_data_point_yy,
+                                                                            mark_cpu_number, mark_gpu_number, flag));
+      cudaDeviceSynchronize();
 
-        //cudaDeviceSynchronize();
-        dim3 slgrid(upper(length, slblock.x), 1, 1);
-        KERNEL_SWITCH(kmeans_yy_local_filter_partition, <<<slgrid, slblock>>>((*passed_yy)[devi].get(), 
-                                                                              mark_cpu_yy, mark_gpu_yy, current_skip_ratio,
-                                                                              partition_threshold, cpu_sum, gpu_sum, calculate_data_point_yy,
-                                                                              mark_cpu_number, mark_gpu_number, flag));
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop8);
-        cudaEventSynchronize(stop8);
-        float milliseconds8 = 0;
-        cudaEventElapsedTime(&milliseconds8, start8, stop8);
-        printf("(8) CPU-GPU Data Point Partition kernel execution time: %f ms\n", milliseconds8);
-        //printf("partition_threshold = %u\n", *partition_threshold);
-        cudaEventDestroy(start8);
-        cudaEventDestroy(stop8); 
+      cudaEventRecord(stop8);
+      cudaEventSynchronize(stop8);
+      float milliseconds8 = 0;
+      cudaEventElapsedTime(&milliseconds8, start8, stop8);
+      printf("(8) CPU-GPU Data Point Partition kernel execution time: %f ms\n", milliseconds8);
+      cudaEventDestroy(start8);
+      cudaEventDestroy(stop8); 
 
 
-        printf("(9-4-1) Skip Ratio = %.5f\n", *current_skip_ratio);
-        //printf("(9-3-1) Partition threshold = %u\n", *partition_threshold);
-        printf("(9-4-2) CPU Threads = %u GPU Threads = %u Thread ratio = %.2f\n", *mark_cpu_number, *mark_gpu_number, (static_cast<float>(*mark_gpu_number)/static_cast<float>(*mark_cpu_number)));
-        printf("(9-4-2) CPU calculation = %u  GPU calculation = %u \n", *cpu_sum, *gpu_sum);
+      printf("(9-4-1) Skip Ratio = %.5f\n", *current_skip_ratio);
+      printf("(9-4-2) CPU Threads = %u GPU Threads = %u Thread ratio = %.2f\n", *mark_cpu_number, *mark_gpu_number, (static_cast<float>(*mark_gpu_number)/static_cast<float>(*mark_cpu_number)));
+      printf("(9-4-2) CPU calculation = %u  GPU calculation = %u \n", *cpu_sum, *gpu_sum);
 
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+//-------------------------------------------------------HETD (Device To Host)----------------------------------------------------------------------------------- 
       cudaEvent_t start_d2h, stop_d2h;
       cudaEventCreate(&start_d2h);
       cudaEventCreate(&stop_d2h);
       cudaEventRecord(start_d2h);
       
-      //float     *h_samples        = (float*)malloc(h_samples_size * h_features_size * sizeof(float));
       float     *h_centroids      = (float*)malloc(h_clusters_size * h_features_size * sizeof(float));
       uint32_t  *h_assignments_yy = (uint32_t*)malloc(h_clusters_size * sizeof(uint32_t));
       float     *h_drifts_yy      = (float*)malloc((h_clusters_size) * (h_features_size + 1) * sizeof(float));
-      //uint32_t  *h_passed_yy        = (uint32_t*)malloc(h_samples_size * sizeof(uint32_t));
-      
+
       cudaMemcpy(assignment_yy, (*assignments)[devi].get(), h_samples_size * sizeof(uint32_t), cudaMemcpyDeviceToDevice);
-
-     // cudaMemcpy(h_samples, (samples)[devi].get(), h_samples_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
-   
       cudaMemcpy(h_centroids, (*centroids)[devi].get(), h_clusters_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
-
       cudaMemcpy(h_assignments_yy, (*assignments_yy)[devi].get(), h_clusters_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
       cudaMemcpy(h_drifts_yy, (*drifts_yy)[devi].get(), (h_clusters_size) * (h_features_size + 1) * sizeof(float), cudaMemcpyDeviceToHost);
-      //cudaMemcpy(h_passed_yy, (*passed_yy)[devi].get(), (h_samples_size) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
-      //cudaDeviceSynchronize();
 
       cudaEventRecord(stop_d2h);
       cudaEventSynchronize(stop_d2h);
@@ -2768,55 +2298,37 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventDestroy(start_d2h);
       cudaEventDestroy(stop_d2h);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------  
-      //RETERR(cuda_transpose(h_clusters_size, h_features_size, true, devs, verbosity, centroids));
-       cudaEvent_t kernel_start;
-       cudaEvent_t kernel_stop;
-       cudaEvent_t  sync_start;
-      // cudaEvent_t sync_stop;
-       cudaEventCreate(&kernel_start);
-       cudaEventCreate(&kernel_stop);
-       cudaEventCreate(&sync_start);
-      // cudaEventCreate(&sync_stop);
+//---------------------------------------------------------HETD (CPU GPU HETD parallel)-----------------------------------------------------------------------------------  
+      cudaEvent_t kernel_start;
+      cudaEvent_t kernel_stop;
+      cudaEvent_t  sync_start;
+      cudaEventCreate(&kernel_start);
+      cudaEventCreate(&kernel_stop);
+      cudaEventCreate(&sync_start);
 
-      // // GPU 커널 시작 시간을 기록
-       cudaEventRecord(kernel_start);
-      // GPU 커널 호출
-      //dim3 slgrid(upper(length, slblock.x), 1, 1);
-      KERNEL_SWITCH(kmeans_yy_local_filter3, <<<slgrid, slblock, shmem_sizes[devi]>>>(
+      cudaEventRecord(kernel_start);
+
+      KERNEL_SWITCH(kubism_GPU_HETD, <<<slgrid, slblock, shmem_sizes[devi]>>>(
           offset, length,  
           reinterpret_cast<const float*>(samples[devi].get()), 
-          //samples_yy,
           mark_gpu_yy, (*passed_yy)[devi].get(),
           reinterpret_cast<const float*>((*centroids)[devi].get()),
-          //centroids_yyy,
           (*assignments_yy)[devi].get(), 
-          //assignments_yyy,
           (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-          //drifts_yyy,
           assignment_yy,
-          //(*assignments)[devi].get() + offset,
           bounds_yy,
-          //(*bounds_yy)[devi].get(),
           second_min_dists_yy, mark_gpu_number,
           partition_threshold
-
-          //calculate_data_point_yy,
-          //d_samples_row_major, d_centroids_col_major
           ));
-      //cudaDeviceSynchronize();
       cudaEventRecord(kernel_stop);
-      //cudaEventSynchronize(kernel_stop);
      
       uint32_t h_changed_number_cpu = 0;
-      local_filter_cpu2<float>(h_samples_size, h_clusters_size, h_features_size, h_yy_groups_size,
+      kubism_CPU_HETD<float>(h_samples_size, h_clusters_size, h_features_size, h_yy_groups_size,
                               h_samples, mark_cpu_yy, h_centroids, h_assignments_yy, h_drifts_yy, 
                               assignment_yy, bounds_yy, second_min_dists_yy, 
                               mark_cpu_number, h_changed_number_cpu);
-       cudaEventRecord(sync_start);
-       cudaDeviceSynchronize();///////////////////////////////////////////////////////////////////////////////////////////////////
-       //cudaEventRecord(sync_stop);
-       //cudaEventSynchronize(sync_stop);////////////////////////////////////
+      cudaEventRecord(sync_start);
+      cudaDeviceSynchronize();
 
       float kernel_time = 0;
       cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop);
@@ -2826,22 +2338,11 @@ KMCUDAResult kmeans_cuda_yy(
       cudaEventElapsedTime(&sync_time1, kernel_start, sync_start);
       printf("(9-4-4) Only Heterogeneous kernel start ~ sync start: %f ms\n", sync_time1);
 
-
-      //float kernel_sync_time1 = 0 ; 
-      //cudaEventElapsedTime(&kernel_sync_time1, kernel_start, sync_stop);
-      //printf("(9-2) kernel start ~ sync stop: %f ms\n", kernel_sync_time1);
-
-
-
-      // CUDA 이벤트 제거
       cudaEventDestroy(kernel_start);
       cudaEventDestroy(kernel_stop);
       cudaEventDestroy(sync_start);
-      //cudaEventDestroy(sync_stop);
- 
       
-//----------------------------------------------------------------------------------------------------------------------------      
-/* H2D */     
+//-----------------------------------------------------HETD (Host To Device)--------------------------------------------------------         
       cudaEvent_t start_h2d, stop_h2d;
       cudaEventCreate(&start_h2d);
       cudaEventCreate(&stop_h2d);
@@ -2855,8 +2356,7 @@ KMCUDAResult kmeans_cuda_yy(
       float milliseconds_h2d = 0;
       cudaEventElapsedTime(&milliseconds_h2d, start_h2d, stop_h2d);
       printf("(9-4-5) Host To Device Data Transfer Time: %f ms\n", milliseconds_h2d);
-      //float total_time = milliseconds6 + milliseconds7 + milliseconds8 + milliseconds_d2h + sync_time1 + milliseconds_h2d;
-      //printf("(9-4-6) Total Time: %f ms\n", total_time);
+
       cudaEventDestroy(start_h2d);
       cudaEventDestroy(stop_h2d);
 
@@ -2864,14 +2364,14 @@ KMCUDAResult kmeans_cuda_yy(
       /* Retrieve d_changed_number from GPU */
       uint32_t h_changed_number_gpu;
       CUCH(cudaMemcpyFromSymbol(&h_changed_number_gpu, d_changed_number, sizeof(uint32_t), 0, cudaMemcpyDeviceToHost), kmcudaMemoryCopyError); // device -> host
-      //printf("(9-2-4) (GPU) Changed Number: %u\n", h_changed_number_gpu);
-      //cudaDeviceSynchronize();
+
       /* Combine CPU and GPU changed numbers */
       uint32_t total_changed_number = h_changed_number_cpu + h_changed_number_gpu;
       printf("(9-4-6) Iteration %d Total Reassignments (CPU + GPU): %u\n", iter, total_changed_number );
       CUCH(cudaMemcpyToSymbol(d_changed_number, &total_changed_number, sizeof(uint32_t), 0, cudaMemcpyHostToDevice), kmcudaMemoryCopyError); // reflect next iteration
 //-------------------------------------------------------------------------------------------------------------------------
       prev_execution_time = sync_time1;
+      printf("prev_skip_ratio = %0.3f, current_skip_ratio = %0.3f \n", prev_skip_ratio, *current_skip_ratio);
       prev_skip_ratio = *current_skip_ratio;
 
       cudaFreeHost(cpu_sum);
@@ -2882,285 +2382,27 @@ KMCUDAResult kmeans_cuda_yy(
       cudaFreeHost(mark_cpu_number);
       cudaFreeHost(mark_gpu_number);
 
-     // free(h_samples);
       free(h_centroids);
       free(h_assignments_yy);
       free(h_drifts_yy);
-      //free(h_passed_yy);
-
-
-    
-
     }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-  else if (flag == 4 && h_features_size <= 64 ){
-
-
-        uint32_t *cpu_sum;
-        cudaHostAlloc((void**)&cpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
-        *cpu_sum = 0;
-
-        uint32_t *gpu_sum;
-        cudaHostAlloc((void**)&gpu_sum, sizeof(uint32_t), cudaHostAllocMapped);
-        *gpu_sum = 0;
-
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-        cudaEvent_t start8, stop8;
-        cudaEventCreate(&start8);
-        cudaEventCreate(&stop8);
-        cudaEventRecord(start8);
-
-        uint32_t *mark_cpu_yy;
-        cudaHostAlloc((void**)&mark_cpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
-
-        uint32_t *mark_gpu_yy;
-        cudaHostAlloc((void**)&mark_gpu_yy, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t), cudaHostAllocMapped);
-  
-        memset(mark_cpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
-        memset(mark_gpu_yy, 0, static_cast<uint32_t>(h_samples_size) * sizeof(uint32_t));
-
-        uint32_t *mark_cpu_number;
-        cudaHostAlloc(&mark_cpu_number, sizeof(uint32_t), cudaHostAllocMapped);
-        
-        uint32_t *mark_gpu_number;
-        cudaHostAlloc(&mark_gpu_number, sizeof(uint32_t), cudaHostAllocMapped);
-
-        memset(mark_cpu_number, 0, sizeof(uint32_t)); // Set to 0
-        memset(mark_gpu_number, 0, sizeof(uint32_t)); // Set to 0
-
-        //cudaDeviceSynchronize();
-        dim3 slgrid(upper(length, slblock.x), 1, 1);
-        KERNEL_SWITCH(kmeans_yy_local_filter_partition_2, <<<slgrid, slblock>>>((*passed_yy)[devi].get(), 
-                                                                              mark_cpu_yy, mark_gpu_yy, current_skip_ratio,
-                                                                              partition_threshold,
-                                                                              mark_cpu_number, mark_gpu_number, flag));
-        cudaDeviceSynchronize();
-
-        cudaEventRecord(stop8);
-        cudaEventSynchronize(stop8);
-        float milliseconds8 = 0;
-        cudaEventElapsedTime(&milliseconds8, start8, stop8);
-        printf("(8) CPU-GPU Data Point Partition kernel execution time: %f ms\n", milliseconds8);
-        //printf("partition_threshold = %u\n", *partition_threshold);
-        cudaEventDestroy(start8);
-        cudaEventDestroy(stop8); 
-
-
-        printf("(just hetero) Skip Ratio = %.5f\n", *current_skip_ratio);
-        //printf("(9-3-1) Partition threshold = %u\n", *partition_threshold);
-        printf("(just hetero) CPU Threads = %u GPU Threads = %u Thread ratio = %.2f\n", *mark_cpu_number, *mark_gpu_number, (static_cast<float>(*mark_gpu_number)/static_cast<float>(*mark_cpu_number)));
-        printf("(just hetero) CPU calculation = %u  GPU calculation = %u \n", *cpu_sum, *gpu_sum);
-
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-    
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-      cudaEvent_t start_d2h, stop_d2h;
-      cudaEventCreate(&start_d2h);
-      cudaEventCreate(&stop_d2h);
-      cudaEventRecord(start_d2h);
-      
-      //float     *h_samples        = (float*)malloc(h_samples_size * h_features_size * sizeof(float));
-      float     *h_centroids      = (float*)malloc(h_clusters_size * h_features_size * sizeof(float));
-      uint32_t  *h_assignments_yy = (uint32_t*)malloc(h_clusters_size * sizeof(uint32_t));
-      float     *h_drifts_yy      = (float*)malloc((h_clusters_size) * (h_features_size + 1) * sizeof(float));
-      //uint32_t  *h_passed_yy        = (uint32_t*)malloc(h_samples_size * sizeof(uint32_t));
-      
-      cudaMemcpy(assignment_yy, (*assignments)[devi].get(), h_samples_size * sizeof(uint32_t), cudaMemcpyDeviceToDevice);
-
-     // cudaMemcpy(h_samples, (samples)[devi].get(), h_samples_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
-   
-      cudaMemcpy(h_centroids, (*centroids)[devi].get(), h_clusters_size * h_features_size * sizeof(float), cudaMemcpyDeviceToHost);
-
-      cudaMemcpy(h_assignments_yy, (*assignments_yy)[devi].get(), h_clusters_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
-      cudaMemcpy(h_drifts_yy, (*drifts_yy)[devi].get(), (h_clusters_size) * (h_features_size + 1) * sizeof(float), cudaMemcpyDeviceToHost);
-      //cudaMemcpy(h_passed_yy, (*passed_yy)[devi].get(), (h_samples_size) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
-      //cudaDeviceSynchronize();
-
-      cudaEventRecord(stop_d2h);
-      cudaEventSynchronize(stop_d2h);
-      float milliseconds_d2h = 0;
-      cudaEventElapsedTime(&milliseconds_d2h, start_d2h, stop_d2h);
-      printf("(9-4-3) Device to Host Data Transfer Time: %f ms\n", milliseconds_d2h);
-      cudaEventDestroy(start_d2h);
-      cudaEventDestroy(stop_d2h);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------  
-      //RETERR(cuda_transpose(h_clusters_size, h_features_size, true, devs, verbosity, centroids));
-       cudaEvent_t kernel_start;
-       cudaEvent_t kernel_stop;
-       cudaEvent_t  sync_start;
-      // cudaEvent_t sync_stop;
-       cudaEventCreate(&kernel_start);
-       cudaEventCreate(&kernel_stop);
-       cudaEventCreate(&sync_start);
-      // cudaEventCreate(&sync_stop);
-
-      // // GPU 커널 시작 시간을 기록
-       cudaEventRecord(kernel_start);
-      // GPU 커널 호출
-      //dim3 slgrid(upper(length, slblock.x), 1, 1);
-      KERNEL_SWITCH(kmeans_yy_local_filter3, <<<slgrid, slblock, shmem_sizes[devi]>>>(
-          offset, length,  
-          reinterpret_cast<const float*>(samples[devi].get()), 
-          //samples_yy,
-          mark_gpu_yy, (*passed_yy)[devi].get(),
-          reinterpret_cast<const float*>((*centroids)[devi].get()),
-          //centroids_yyy,
-          (*assignments_yy)[devi].get(), 
-          //assignments_yyy,
-          (*drifts_yy)[devi].get(),    // assignments_yy equal to groups
-          //drifts_yyy,
-          assignment_yy,
-          //(*assignments)[devi].get() + offset,
-          bounds_yy,
-          //(*bounds_yy)[devi].get(),
-          second_min_dists_yy, mark_gpu_number,
-          partition_threshold
-
-          //calculate_data_point_yy,
-          //d_samples_row_major, d_centroids_col_major
-          ));
-      //cudaDeviceSynchronize();
-      cudaEventRecord(kernel_stop);
-      //cudaEventSynchronize(kernel_stop);
-     
-      uint32_t h_changed_number_cpu = 0;
-      local_filter_cpu2<float>(h_samples_size, h_clusters_size, h_features_size, h_yy_groups_size,
-                              h_samples, mark_cpu_yy, h_centroids, h_assignments_yy, h_drifts_yy, 
-                              assignment_yy, bounds_yy, second_min_dists_yy, 
-                              mark_cpu_number, h_changed_number_cpu);
-       cudaEventRecord(sync_start);
-       cudaDeviceSynchronize();///////////////////////////////////////////////////////////////////////////////////////////////////
-       //cudaEventRecord(sync_stop);
-       //cudaEventSynchronize(sync_stop);////////////////////////////////////
-
-      float kernel_time = 0;
-      cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop);
-      printf("(9-4-4) Only Heterogeneous kernel execution time: %f ms\n", kernel_time);
-
-      float sync_time1 = 0;
-      cudaEventElapsedTime(&sync_time1, kernel_start, sync_start);
-      printf("(9-4-4) Only Heterogeneous kernel start ~ sync start: %f ms\n", sync_time1);
-
-
-      //float kernel_sync_time1 = 0 ; 
-      //cudaEventElapsedTime(&kernel_sync_time1, kernel_start, sync_stop);
-      //printf("(9-2) kernel start ~ sync stop: %f ms\n", kernel_sync_time1);
-
-
-
-      // CUDA 이벤트 제거
-      cudaEventDestroy(kernel_start);
-      cudaEventDestroy(kernel_stop);
-      cudaEventDestroy(sync_start);
-      //cudaEventDestroy(sync_stop);
- 
-      
-//----------------------------------------------------------------------------------------------------------------------------      
-/* H2D */     
-      cudaEvent_t start_h2d, stop_h2d;
-      cudaEventCreate(&start_h2d);
-      cudaEventCreate(&stop_h2d);
-      cudaEventRecord(start_h2d);
-
-      cudaMemcpy((*assignments)[devi].get(), assignment_yy, h_samples_size * sizeof(uint32_t), cudaMemcpyDeviceToDevice);
-
-      cudaDeviceSynchronize();
-      cudaEventRecord(stop_h2d);
-      cudaEventSynchronize(stop_h2d);
-      float milliseconds_h2d = 0;
-      cudaEventElapsedTime(&milliseconds_h2d, start_h2d, stop_h2d);
-      printf("(9-4-5) Host To Device Data Transfer Time: %f ms\n", milliseconds_h2d);
-      //float total_time = milliseconds6 + milliseconds7 + milliseconds8 + milliseconds_d2h + sync_time1 + milliseconds_h2d;
-      //printf("(9-4-6) Total Time: %f ms\n", total_time);
-      cudaEventDestroy(start_h2d);
-      cudaEventDestroy(stop_h2d);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------  
-      /* Retrieve d_changed_number from GPU */
-      uint32_t h_changed_number_gpu;
-      CUCH(cudaMemcpyFromSymbol(&h_changed_number_gpu, d_changed_number, sizeof(uint32_t), 0, cudaMemcpyDeviceToHost), kmcudaMemoryCopyError); // device -> host
-      //printf("(9-2-4) (GPU) Changed Number: %u\n", h_changed_number_gpu);
-      //cudaDeviceSynchronize();
-      /* Combine CPU and GPU changed numbers */
-      uint32_t total_changed_number = h_changed_number_cpu + h_changed_number_gpu;
-      printf("(9-4-6) Iteration %d Total Reassignments (CPU + GPU): %u\n", iter, total_changed_number );
-      CUCH(cudaMemcpyToSymbol(d_changed_number, &total_changed_number, sizeof(uint32_t), 0, cudaMemcpyHostToDevice), kmcudaMemoryCopyError); // reflect next iteration
-//-------------------------------------------------------------------------------------------------------------------------
-      prev_execution_time = sync_time1;
-      prev_skip_ratio = *current_skip_ratio;
-
-      cudaFreeHost(cpu_sum);
-      cudaFreeHost(gpu_sum);
-
-      cudaFreeHost(mark_cpu_yy);
-      cudaFreeHost(mark_gpu_yy);
-      cudaFreeHost(mark_cpu_number);
-      cudaFreeHost(mark_gpu_number);
-
-     // free(h_samples);
-      free(h_centroids);
-      free(h_assignments_yy);
-      free(h_drifts_yy);
-      //free(h_passed_yy);
-
-
-    
-
-    }
-
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-
-  /* outside else */
-  /*  local filter2 end */
   cudaFreeHost(second_min_dists_yy);
   cudaFreeHost(mark_threads_yy);
   cudaFreeHost(calculate_data_point_yy);
-  //cudaFree(d_calculate_centroid);
 
   cudaFreeHost(current_skip_ratio);
   cudaFreeHost(partition_threshold);
 
   cudaFreeHost(calculate_sum);
-
-
+  
+//-----------------------------------------------------Stop Power Measure---------------------------------------------------------------------------------------------
   // std::cout << "End capturing power metrics..." << std::endl;   
   // capture_power_metrics_in_interval_end(iter);
 
-
-
   );
   //--------------------------------------------FOR_EACH_DEVI--------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3174,9 +2416,7 @@ KMCUDAResult kmeans_cuda_yy(
       FOR_OTHER_DEVS(
         CUP2P(assignments_prev, offset, length);
         CUP2P(assignments, offset, length);
-
       );
-
     );
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3184,22 +2424,10 @@ KMCUDAResult kmeans_cuda_yy(
   //------------------------------------------------------iter-------------------------------------------------------------
   cudaFreeHost(bounds_yy);
   cudaFreeHost(assignment_yy);
-
   free(h_samples);
- // free(h_centroids);
-
-  //cudaFreeHost(samples_yy);
-  //cudaFreeHost(centroids_yyy);
-  //cudaFreeHost(assignments_yyy);
-  //cudaFreeHost(drifts_yyy);
-  
 
 }
 //------------------------------------------------------kmeans_cuda_yy------------------------------------------------------------
-
-
-
-//-------------------------------------------------------------------------------------------------
 
 KMCUDAResult kmeans_cuda_calc_average_distance(
     uint32_t h_samples_size, uint16_t h_features_size,
@@ -3237,8 +2465,6 @@ KMCUDAResult kmeans_cuda_calc_average_distance(
   *average_distance = sum / h_samples_size;
   return kmcudaSuccess;
 }
-
-
 
 
 }  // extern "C"
