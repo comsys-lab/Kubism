@@ -23,7 +23,7 @@ float distance_t (
 
 
 template <typename F>
-void local_filter_cpu1(
+void kubism_CPU_WB_HETD(
     const uint32_t samples_size,
     const uint32_t clusters_size,
     const uint16_t features_size,
@@ -45,7 +45,7 @@ void local_filter_cpu1(
 
 
 template <typename F>
-void local_filter_cpu2(
+void kubism_CPU_HETD(
     const uint32_t samples_size,
     const uint32_t clusters_size,
     const uint16_t features_size,
@@ -65,3 +65,4 @@ void local_filter_cpu2(
 
 
 #endif
+
