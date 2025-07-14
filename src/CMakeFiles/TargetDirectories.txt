@@ -1,0 +1,3 @@
+/home/du6293/Kubism/src/CMakeFiles/KMCUDA.dir
+/home/du6293/Kubism/src/CMakeFiles/edit_cache.dir
+/home/du6293/Kubism/src/CMakeFiles/rebuild_cache.dir
