@@ -5,7 +5,7 @@ This repository contains the implementation of **Kubism: Disassembling and Reass
 ## Repository Structure
 
 - `src/`: Core CUDA/C++ implementation (`CMakeLists.txt`, `read_input.c`, `kmcuda.h`, `kmcuda.cc`, `kmeans.cu`, `kmeans_cpu.h`, `kmeans_cpu.cc`, and auxiliary modules).
-- `shell_script/`: Example dataset generation script (`make_csv.py`) and log-parsing scripts for execution time, reassignments, skip ratios, and power metrics.
+- `shell_script/`: Example dataset generation script (`make_csv.py`) and log parsing scripts for execution time, reassignments, skip ratios, and power metrics.
 
 ## Requirements and Build
 
@@ -36,7 +36,7 @@ The repository also provides `shell_script/make_csv.py` as an example script to 
 
 The `kmeans_cuda_yy` function in `src/kmeans.cu` selects an execution mode based on `flag` (line 1689 inside `if (refresh)`) and the dynamic threshold logic (lines 1996–1999 and 2207–2219). The following table describes the settings for each experimental configuration, including warp balancing (WB) and heterogeneous platform-aware task distribution (HETD).
 
-| Configuration | `src/kmeans.cu` Setting | Log-Parsing Script |
+| Configuration | `src/kmeans.cu` Setting | Log Parsing Script |
 |---|---|---|
 | **Kubism** (default) | Keep `flag = 3` (line 1689) and retain the dynamic threshold switching logic (lines 1996–1999, 2207–2219) | `shell_script/extract_kubism_times.sh`, `shell_script/extract_skip_ratio.sh` |
 | **Baseline** (GPU Yinyang) | Set `flag = 0` (line 1689) | `shell_script/baseline_extract_times.sh`, `shell_script/baseline_extract_reassignments.sh` |
