@@ -1,1 +1,14 @@
+# Datasets and logs
 src/random_1M_128
+*.csv
+*.log
+
+# CMake and build artifacts
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+src/build/
+*.o
+*.so
+src/read_input

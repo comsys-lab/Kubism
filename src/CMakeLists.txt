@@ -3,7 +3,8 @@ project(Kubism)
 
 set(CMAKE_MODULE_PATH ${CMAKE_HOME_DIRECTORY}/cmake)
 
-# Find OpenMP and add it if requiredfind_package(OpenMP REQUIRED)
+# Find OpenMP and add it if required
+find_package(OpenMP REQUIRED)
 
 if (APPLE AND NOT CUDA_HOST_COMPILER)
   # https://gitlab.kitware.com/cmake/cmake/issues/13674
